@@ -1,6 +1,6 @@
 # Mchango Contract
 
-Welcome to mchango contract code base, this is the heart of Mchango and automated smart contract that enables decentralized savings
+Welcome to mchango contract code base, this is the heart of Mchango and automated smart contract that enables decentralized savings (RSAC)
 
 ## Authors
 
