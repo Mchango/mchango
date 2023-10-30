@@ -1,13 +1,47 @@
-# Sample Hardhat Project
+# Mchango Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Welcome to mchango contract code base, this is the heart of Mchango and automated smart contract that enables decentralized savings
 
-Try running some of the following tasks:
+## Authors
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
+- [@3ill](https://www.github.com/3ill)
+
+## Contributing
+
+Contributions are always welcome!
+
+Please adhere to this project's `code of conduct`.
+
+## Tech Stack
+
+**Server:** `Solidity`, `Javascript`, `Ethers.js`
+
+## Run Locally
+
+Clone the project
+
+```bash
+  git clone https://github.com/Mchango/mchango.git
 ```
+
+Go to the project directory
+
+```bash
+  cd contract
+```
+
+Install dependencies
+
+```bash
+  npm install
+```
+
+Compile contract
+
+```bash
+  hardhat compile
+```
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
