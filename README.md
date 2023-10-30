@@ -9,7 +9,7 @@ Welcome to mchango a rotating savings and contribution platform
 ## Authors
 
 - [@3ill](https://www.github.com/3ill)
--[@YourFriendInProduct](https://www.github.com/YourFriendInProduct)
+- [@YourFriendInProduct](https://www.github.com/YourFriendInProduct)
 
 
 
