@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className=" font-satoshi bg-gray-950">{children}</body>
+      <body className=" font-satoshi bg-primary padding">{children}</body>
     </html>
   );
 }
