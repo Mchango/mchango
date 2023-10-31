@@ -17,6 +17,13 @@ const config: Config = {
       fontFamily: {
         satoshi: ['Satoshi', 'sans-serif'],
       },
+
+      colors: {
+        primary: '#09090A',
+        secondary: '#1F1F22',
+        text: '#EFEFEF',
+        accent: '#7615BA',
+      },
     },
   },
   plugins: [],
