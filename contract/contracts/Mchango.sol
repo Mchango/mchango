@@ -32,9 +32,9 @@ contract Mchango {
     //!Project Enums
 
     enum State {
-        notStarted,
-        inProgress,
-        completed
+        initialization,
+        contribution,
+        rotation
     }
 
     enum Tier {
@@ -52,14 +52,17 @@ contract Mchango {
     }
 
     struct Group {
+        uint256 id;
+        uint256 collateral;
+        uint256 contributionValue;
         address admin;
         string name;
         string description;
         uint256 balance;
-        uint256 contributionValue;
         address[] groupMembers;
         address[] eligibleMembers;
         mapping(address => Participant) participants;
+        mapping(address => uint256) collateralTracking;
         State currentState;
     }
 
@@ -72,18 +75,35 @@ contract Mchango {
         bool isBanned;
         bool isEligble;
         bool hasReceivedFunds;
+        uint256 reputation;
+    }
+
+    struct Member {
+        uint id;
+        string name;
+        address memberAddress;
+        uint256 amountDonated;
+        uint256 amountCollected;
+        uint256 reputation;
     }
 
     //!Project States
+    uint256 private counter = 0;
+    uint256 private memberCounter = 0;
     uint256 public premiumFee;
     uint256 public exclusiveFee;
+    uint256[] public keys;
+    uint256[] public memberKeys;
     Group[] public allGroups;
     address[] public admins;
     address private immutable Owner;
-    mapping(address => uint256[]) adminToGroupIndexes;
+    mapping(uint256 => Group) idToGroup;
+    mapping(address => uint256[]) adminToGroup;
     mapping(address => bool) public isPremium;
     mapping(address => bool) public isExclusive;
     mapping(address => Subscriber) public addressToSubscriber;
+    mapping(address => Member) public addressToMember;
+    mapping(address => bool) private isMember;
 
     /**
      * ! Project constructor
@@ -98,16 +118,11 @@ contract Mchango {
     }
 
     //!Project Modifiers
-    modifier onlyAdmin(address _groupAdmin) {
-        bool isAdmin = false;
-        uint256[] storage groupIndexes = adminToGroupIndexes[_groupAdmin];
-        for (uint256 i = 0; i < groupIndexes.length; i++) {
-            if (allGroups[groupIndexes[i]].admin == _groupAdmin) {
-                isAdmin = true;
-                break;
-            }
-        }
-        require(isAdmin, "Only group admin can perform this action");
+    modifier onlyAdmin(uint256 _id) {
+        require(
+            msg.sender == idToGroup[_id].admin,
+            "only admin can call this function"
+        );
         _;
     }
 
@@ -124,24 +139,8 @@ contract Mchango {
         _;
     }
 
-    modifier groupCompliance() {
-        require(
-            adminToGroupIndexes[msg.sender].length == 0,
-            "You have already created a group"
-        );
-        _;
-    }
-
-    modifier groupExsist(address _adminAddress) {
-        bool exists = false;
-        uint256[] storage groupIndexes = adminToGroupIndexes[_adminAddress];
-        for (uint256 i = 0; i < groupIndexes.length; i++) {
-            if (allGroups[groupIndexes[i]].admin == _adminAddress) {
-                exists = true;
-                break;
-            }
-        }
-        require(exists, "This group does not exist");
+    modifier groupExsist(uint256 _id) {
+        require(_id <= keys.length, "This group doesn't exist");
         _;
     }
 
@@ -220,6 +219,18 @@ contract Mchango {
         return type(uint256).max;
     }
 
+    function getMaxMembers(
+        address _memberAddress
+    ) internal view returns (uint256) {
+        if (isSubscriberPremium(_memberAddress)) {
+            return 20;
+        } else if (isSubscriberExclusive(_memberAddress)) {
+            return 50;
+        } else {
+            return 10;
+        }
+    }
+
     function setPremiumFee(uint256 _fee) external onlyOwner {
         premiumFee = _fee;
     }
@@ -232,17 +243,19 @@ contract Mchango {
     function createGroup(
         string memory _groupDescription,
         string memory _name,
-        uint256 _contributionValue
-    ) external groupCompliance {
+        uint256 _collateralValue
+    ) external {
+        uint256 id = counter++;
         address admin = msg.sender;
 
-        Group storage newGroup = allGroups.push();
+        Group storage newGroup = idToGroup[id];
+        newGroup.id = id;
+        newGroup.collateral = _collateralValue;
         newGroup.admin = admin;
         newGroup.name = _name;
         newGroup.description = _groupDescription;
         newGroup.balance = 0;
-        newGroup.contributionValue = _contributionValue;
-        newGroup.currentState = State.notStarted;
+        newGroup.currentState = State.initialization;
 
         if (isSubscriberPremium(admin)) {
             newGroup.groupMembers = new address[](20);
@@ -252,20 +265,19 @@ contract Mchango {
             newGroup.groupMembers = new address[](10);
         }
 
-        uint256 groupIndex = allGroups.length - 1;
-        adminToGroupIndexes[admin].push(groupIndex);
-
+        keys.push(id);
+        adminToGroup[admin].push(id);
         admins.push(admin);
 
         emit hasCreatedGroup(admin, _groupDescription);
     }
 
     function getGroupDetails(
-        address _admin
+        uint256 _id
     )
         external
         view
-        groupExsist(_admin)
+        groupExsist(_id)
         returns (
             string memory,
             string memory,
@@ -274,8 +286,7 @@ contract Mchango {
             address[] memory
         )
     {
-        uint256 groupIndex = adminToGroupIndexes[_admin][0];
-        Group storage group = allGroups[groupIndex];
+        Group storage group = idToGroup[_id];
 
         return (
             group.name,
@@ -286,253 +297,287 @@ contract Mchango {
         );
     }
 
-    function addGroupMembers(
-        string memory _name,
-        address _memberAddress
-    ) external onlyAdmin(msg.sender) groupExsist(msg.sender) {
-        Group storage group = allGroups[adminToGroupIndexes[msg.sender][0]];
+    /**
+     * @notice //!function requires an update
+     */
+
+    function joinGroup(
+        uint256 _id,
+        string memory _name
+    ) external groupExsist(_id) {
+        Group storage group = idToGroup[_id];
+        address _memberAddress = msg.sender;
 
         require(
-            group.currentState == State.notStarted,
-            "Cannot add members after collection has started"
+            group.currentState == State.initialization,
+            "Cannot add members after contribution or collection has started"
         );
-        if (isSubscriberPremium(msg.sender)) {
-            require(
-                group.groupMembers.length <= 20,
-                "Maximum number of members reached"
-            );
-        } else if (isSubscriberExclusive(msg.sender)) {
-            require(
-                group.groupMembers.length <= 50,
-                "Maximum number of members reached"
-            );
+        require(
+            group.groupMembers.length < getMaxMembers(_memberAddress),
+            "Maximum number of members reached"
+        );
+
+        if (!isMember[_memberAddress]) {
+            uint256 memberId = memberCounter++;
+            group.participants[_memberAddress] = Participant({
+                name: _name,
+                participantAddress: _memberAddress,
+                amountDonated: 0,
+                amountCollected: 0,
+                timeStamp: 0,
+                isBanned: false,
+                isEligble: false,
+                hasReceivedFunds: false,
+                reputation: 1
+            });
+
+            memberKeys.push(memberId);
+
+            addressToMember[_memberAddress] = Member({
+                id: memberId,
+                name: _name,
+                memberAddress: _memberAddress,
+                amountDonated: 0,
+                amountCollected: 0,
+                reputation: 1
+            });
+
+            isMember[_memberAddress] = true;
         } else {
             require(
-                group.groupMembers.length <= 10,
-                "Maximum number of members reached"
+                addressToMember[_memberAddress].reputation > 0,
+                "Not enough reputation to join group"
             );
+            group.participants[_memberAddress].reputation = addressToMember[
+                _memberAddress
+            ].reputation;
         }
-
-        group.participants[_memberAddress] = Participant({
-            name: _name,
-            participantAddress: _memberAddress,
-            amountDonated: 0,
-            amountCollected: 0,
-            timeStamp: 0,
-            isBanned: false,
-            isEligble: false,
-            hasReceivedFunds: false
-        });
 
         group.groupMembers.push(_memberAddress);
     }
 
-    function setContributionValue(
-        uint256 _value
-    ) external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
-
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        allGroups[groupIndex].contributionValue = _value;
+    //! This function is called when the group state is in contribution
+    function defineContributionValue(uint256) internal {
+        //? Acess the group loop through collateral tracking array
+        //? find the average of the values in the array
+        //? update the contributionValue
     }
 
-    function kickGroupMember(
-        address _groupMemberAddress
-    ) external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    //! This function requires an update
+    // function kickGroupMember(
+    //     address _groupMemberAddress
+    // ) external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        uint256 indexToRemove = findIndexOfAddress(
-            group.groupMembers,
-            _groupMemberAddress
-        );
-        require(
-            indexToRemove < group.groupMembers.length,
-            "Address not found in group members"
-        );
+    //     uint256 indexToRemove = findIndexOfAddress(
+    //         group.groupMembers,
+    //         _groupMemberAddress
+    //     );
+    //     require(
+    //         indexToRemove < group.groupMembers.length,
+    //         "Address not found in group members"
+    //     );
 
-        group.groupMembers[indexToRemove] = group.groupMembers[
-            group.groupMembers.length - 1
-        ];
-        group.groupMembers.pop();
+    //     group.groupMembers[indexToRemove] = group.groupMembers[
+    //         group.groupMembers.length - 1
+    //     ];
+    //     group.groupMembers.pop();
 
-        emit memberKicked(group.name, _groupMemberAddress);
-    }
+    //     emit memberKicked(group.name, _groupMemberAddress);
+    // }
 
-    function donate(address _adminAddress) external payable {
-        uint256[] storage groupIndexes = adminToGroupIndexes[_adminAddress];
-        require(groupIndexes.length > 0, "Group does not exist");
+    /**
+     * @notice //! This function requires an update
+     *
+     */
+    // function donate(address _adminAddress) external payable {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[_adminAddress];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.inProgress,
-            "You can only donate when the state is in progress"
-        );
-        require(
-            group.contributionValue != 0,
-            "Contribution value must be more than zero"
-        );
-        require(
-            msg.value == group.contributionValue,
-            "Insufficient amount to contribute"
-        );
+    //     require(
+    //         group.currentState == State.inProgress,
+    //         "You can only donate when the state is in progress"
+    //     );
+    //     require(
+    //         group.contributionValue != 0,
+    //         "Contribution value must be more than zero"
+    //     );
+    //     require(
+    //         msg.value == group.contributionValue,
+    //         "Insufficient amount to contribute"
+    //     );
 
-        (bool success, ) = payable(address(this)).call{value: msg.value}("");
-        require(success, "This transaction failed");
+    //     (bool success, ) = payable(address(this)).call{value: msg.value}("");
+    //     require(success, "This transaction failed");
 
-        group.balance += msg.value;
-        group.participants[msg.sender].amountDonated += msg.value;
-        group.participants[msg.sender].isEligble = true;
-        group.eligibleMembers.push(msg.sender);
+    //     group.balance += msg.value;
+    //     group.participants[msg.sender].amountDonated += msg.value;
+    //     group.participants[msg.sender].isEligble = true;
+    //     group.eligibleMembers.push(msg.sender);
 
-        emit hasDonated(msg.sender, msg.value);
-    }
+    //     emit hasDonated(msg.sender, msg.value);
+    // }
 
-    function startCollection() external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    /**
+     * @notice //!this function requires an update
+     * ? This purpose of this function is to set the state enum to contribution
+     */
+    // function startCollection() external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.notStarted,
-            "Collection has already started"
-        );
+    //     require(
+    //         group.currentState == State.notStarted,
+    //         "Collection has already started"
+    //     );
 
-        group.currentState = State.inProgress;
-    }
+    //     group.currentState = State.inProgress;
+    // }
 
-    function endCollection() external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    /**
+     * @notice //! This function requires an update
+     * ? The purpose of this function is to set the enum state to rotation
+     */
+    // function endCollection() external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.inProgress,
-            "Collection has not started"
-        );
+    //     require(
+    //         group.currentState == State.inProgress,
+    //         "Collection has not started"
+    //     );
 
-        group.currentState = State.completed;
-    }
+    //     group.currentState = State.completed;
+    // }
 
-    function releaseCollection(
-        address _receiver
-    ) external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    /**
+     * @notice //! this function needs to be updated
+     */
+    // function releaseCollection(
+    //     address _receiver
+    // ) external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.completed,
-            "Can not release collection while donation is still in progress"
-        );
+    //     require(
+    //         group.currentState == State.completed,
+    //         "Can not release collection while donation is still in progress"
+    //     );
 
-        Participant storage receiver = group.participants[_receiver];
-        require(
-            receiver.isEligble &&
-                !receiver.hasReceivedFunds &&
-                !receiver.isBanned,
-            "This user is not allowed to receive funds"
-        );
+    //     Participant storage receiver = group.participants[_receiver];
+    //     require(
+    //         receiver.isEligble &&
+    //             !receiver.hasReceivedFunds &&
+    //             !receiver.isBanned,
+    //         "This user is not allowed to receive funds"
+    //     );
 
-        uint256 amountToReceive = group.balance;
-        uint256 coolDown;
+    //     uint256 amountToReceive = group.balance;
+    //     uint256 coolDown;
 
-        if (isSubscriberPremium(msg.sender)) {
-            coolDown = 6 days;
-            uint256 premiumDeduction = (amountToReceive * 15) / 1000;
-            amountToReceive -= premiumDeduction;
-        } else if (isSubscriberExclusive(msg.sender)) {
-            coolDown = 6 days;
-        } else {
-            coolDown = 30 days;
-            uint256 premiumDeduction = (amountToReceive * 3) / 100;
-            amountToReceive -= premiumDeduction;
-        }
+    //     if (isSubscriberPremium(msg.sender)) {
+    //         coolDown = 6 days;
+    //         uint256 premiumDeduction = (amountToReceive * 15) / 1000;
+    //         amountToReceive -= premiumDeduction;
+    //     } else if (isSubscriberExclusive(msg.sender)) {
+    //         coolDown = 6 days;
+    //     } else {
+    //         coolDown = 30 days;
+    //         uint256 premiumDeduction = (amountToReceive * 3) / 100;
+    //         amountToReceive -= premiumDeduction;
+    //     }
 
-        require(amountToReceive > 0, "No funds to release");
+    //     require(amountToReceive > 0, "No funds to release");
 
-        require(
-            receiver.timeStamp == 0 ||
-                block.timestamp > receiver.timeStamp + coolDown,
-            "You are still in a cooldown period"
-        );
+    //     require(
+    //         receiver.timeStamp == 0 ||
+    //             block.timestamp > receiver.timeStamp + coolDown,
+    //         "You are still in a cooldown period"
+    //     );
 
-        (bool success, ) = payable(receiver.participantAddress).call{
-            value: amountToReceive
-        }("");
-        require(success, "This transaction was not successful");
+    //     (bool success, ) = payable(receiver.participantAddress).call{
+    //         value: amountToReceive
+    //     }("");
+    //     require(success, "This transaction was not successful");
 
-        receiver.amountCollected = amountToReceive;
-        receiver.hasReceivedFunds = true;
-        receiver.timeStamp = block.timestamp;
+    //     receiver.amountCollected = amountToReceive;
+    //     receiver.hasReceivedFunds = true;
+    //     receiver.timeStamp = block.timestamp;
 
-        uint256 indexToRemove = findIndexOfAddress(
-            group.eligibleMembers,
-            _receiver
-        );
-        require(
-            indexToRemove < group.eligibleMembers.length,
-            "Receiver not found in the list of eligible members"
-        );
-        group.eligibleMembers[indexToRemove] = group.eligibleMembers[
-            group.eligibleMembers.length - 1
-        ];
-        group.eligibleMembers.pop();
-        group.eligibleMembers.push(_receiver);
+    //     uint256 indexToRemove = findIndexOfAddress(
+    //         group.eligibleMembers,
+    //         _receiver
+    //     );
+    //     require(
+    //         indexToRemove < group.eligibleMembers.length,
+    //         "Receiver not found in the list of eligible members"
+    //     );
+    //     group.eligibleMembers[indexToRemove] = group.eligibleMembers[
+    //         group.eligibleMembers.length - 1
+    //     ];
+    //     group.eligibleMembers.pop();
+    //     group.eligibleMembers.push(_receiver);
 
-        emit fundsReleased(_receiver, amountToReceive);
-    }
+    //     emit fundsReleased(_receiver, amountToReceive);
+    // }
 
-    function resetEligibility() external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    // function resetEligibility() external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.inProgress,
-            "Donation period not in progress"
-        );
+    //     require(
+    //         group.currentState == State.inProgress,
+    //         "Donation period not in progress"
+    //     );
 
-        for (uint256 i = 0; i < group.groupMembers.length; i++) {
-            address member = group.groupMembers[i];
-            group.participants[member].isEligble = true;
-            group.participants[member].hasReceivedFunds = false;
-        }
-    }
+    //     for (uint256 i = 0; i < group.groupMembers.length; i++) {
+    //         address member = group.groupMembers[i];
+    //         group.participants[member].isEligble = true;
+    //         group.participants[member].hasReceivedFunds = false;
+    //     }
+    // }
 
-    function moderateParticipant(
-        address _participant,
-        bool _verdict
-    ) external onlyAdmin(msg.sender) {
-        uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        require(groupIndexes.length > 0, "Group does not exist");
+    /**
+     * @notice //! This function needs an update
+     */
+    // function moderateParticipant(
+    //     address _participant,
+    //     bool _verdict
+    // ) external onlyAdmin(msg.sender) {
+    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+    //     require(groupIndexes.length > 0, "Group does not exist");
 
-        uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        Group storage group = allGroups[groupIndex];
+    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+    //     Group storage group = allGroups[groupIndex];
 
-        require(
-            group.currentState == State.notStarted,
-            "Group is not in join state"
-        );
+    //     require(
+    //         group.currentState == State.notStarted,
+    //         "Group is not in join state"
+    //     );
 
-        group.participants[_participant].isBanned = _verdict;
+    //     group.participants[_participant].isBanned = _verdict;
 
-        emit participantVerdicit(_verdict, _participant);
-    }
+    //     emit participantVerdicit(_verdict, _participant);
+    // }
 
     receive() external payable {}
 }
