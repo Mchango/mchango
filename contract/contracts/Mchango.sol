@@ -252,7 +252,7 @@ contract Mchango {
         return group.currentState;
     }
 
-    function makeContribution(uint256 _value) internal {
+    function makePayment(uint256 _value) internal {
         (bool success, ) = payable(address(this)).call{value: _value}("");
         require(success, "This transaction failed");
     }
@@ -355,6 +355,10 @@ contract Mchango {
 
         //? Check if the sender is already a member
         if (!isMember[_memberAddress]) {
+            //? Make payment
+            makePayment(msg.value);
+            group.collateralTracking[_memberAddress] = msg.value;
+
             uint256 memberId = memberCounter++;
 
             //? Create a new participant
@@ -468,7 +472,7 @@ contract Mchango {
                 "Only eligible members can contribute in the contribution state"
             );
 
-            makeContribution(msg.value);
+            makePayment(msg.value);
 
             //? Update participant's contribution and eligibility
             Participant storage participant = group.participants[msg.sender];
@@ -485,7 +489,7 @@ contract Mchango {
                 "Only eligible members can contribute in the rotation state"
             );
 
-            makeContribution(msg.value);
+            makePayment(msg.value);
 
             //? Update participant's contribution and reputation
             Participant storage participant = group.participants[msg.sender];
