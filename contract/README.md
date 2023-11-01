@@ -5,6 +5,7 @@ Welcome to mchango contract code base, this is the heart of Mchango and automate
 ## Authors
 
 - [@3ill](https://www.github.com/3ill)
+- [@nvsblmike](https://www.github.com/nvsblmike)
 
 ## Contributing
 

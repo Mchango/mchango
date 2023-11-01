@@ -1,27 +1,19 @@
+# Mchango
 
-#  Mchango
-Welcome to mchango a rotating savings and contribution platform 
-
-
-
-
+Welcome to mchango a rotating savings and contribution platform
 
 ## Authors
 
 - [@3ill](https://www.github.com/3ill)
 - [@YourFriendInProduct](https://www.github.com/YourFriendInProduct)
-
-
-
+- [@nvsblmike](https://www.github.com/nvsblmike)
+- [@EniUXplorer](https://github.com/EniUXplorer)
 
 ## Tech Stack
 
 **Client:** React, TailwindCSS, Next.JS, Javascript
 
 **Server:** Solidity, Javascript, Ethers.js
-
-
-
 
 ## Run Locally
 
@@ -48,7 +40,3 @@ Start the server
 ```bash
   npm run dev
 ```
-
-
-
-
