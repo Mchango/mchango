@@ -73,7 +73,7 @@ contract Mchango {
         uint256 amountCollected;
         uint256 timeStamp;
         bool isBanned;
-        bool isEligble;
+        bool isEligible;
         bool hasReceivedFunds;
         uint256 reputation;
     }
@@ -139,8 +139,34 @@ contract Mchango {
         _;
     }
 
-    modifier groupExsist(uint256 _id) {
+    modifier contributionCompliance(uint256 _id, uint256 _value) {
+        Group storage group = idToGroup[_id];
+        require(
+            _value == group.contributionValue,
+            "Not enough amount to participate"
+        );
+        _;
+    }
+
+    modifier collateralCompliance(uint256 _value, uint256 _id) {
+        require(
+            _value >= returnGroup(_id).collateral,
+            "Not enough collateral to join group"
+        );
+        _;
+    }
+
+    modifier groupExists(uint256 _id) {
         require(_id <= keys.length, "This group doesn't exist");
+        _;
+    }
+
+    modifier notInitialization(uint256 _id) {
+        Group storage group = returnGroup(_id);
+        require(
+            group.currentState != State.initialization,
+            "Can only contribute when contribution state is in effect"
+        );
         _;
     }
 
@@ -194,6 +220,10 @@ contract Mchango {
         emit hasSubscribed(subscriberAddress, subscriberPlan, amount);
     }
 
+    /**
+     * @dev these are helper functions that are used internally by major functions
+     *
+     */
     //!Inrernal Functions
     function isSubscriberPremium(
         address _address
@@ -207,16 +237,24 @@ contract Mchango {
         return isExclusive[_address];
     }
 
-    function findIndexOfAddress(
-        address[] storage array,
-        address target
-    ) internal view returns (uint256) {
-        for (uint256 i = 0; i < array.length; i++) {
-            if (array[i] == target) {
-                return i;
-            }
-        }
-        return type(uint256).max;
+    function returnGroup(uint256 _id) internal view returns (Group storage) {
+        return idToGroup[_id];
+    }
+
+    function increaseReputation(address _address) internal returns (uint256) {
+        addressToMember[_address].reputation++;
+        return addressToMember[_address].reputation;
+    }
+
+    function getGroupState(uint256 _id) internal view returns (State) {
+        Group storage group = idToGroup[_id];
+
+        return group.currentState;
+    }
+
+    function makeContribution(uint256 _value) internal {
+        (bool success, ) = payable(address(this)).call{value: _value}("");
+        require(success, "This transaction failed");
     }
 
     function getMaxMembers(
@@ -231,15 +269,10 @@ contract Mchango {
         }
     }
 
-    function setPremiumFee(uint256 _fee) external onlyOwner {
-        premiumFee = _fee;
-    }
-
-    function setExclusiveFee(uint256 _fee) external onlyOwner {
-        exclusiveFee = _fee;
-    }
-
-    //! this function creates a new group
+    /***
+     * @dev //! These are external functions
+     */
+    //? this function creates a new group
     function createGroup(
         string memory _groupDescription,
         string memory _name,
@@ -248,7 +281,7 @@ contract Mchango {
         uint256 id = counter++;
         address admin = msg.sender;
 
-        Group storage newGroup = idToGroup[id];
+        Group storage newGroup = returnGroup(id);
         newGroup.id = id;
         newGroup.collateral = _collateralValue;
         newGroup.admin = admin;
@@ -277,7 +310,7 @@ contract Mchango {
     )
         external
         view
-        groupExsist(_id)
+        groupExists(_id)
         returns (
             string memory,
             string memory,
@@ -298,52 +331,53 @@ contract Mchango {
     }
 
     /**
-     * @notice //!function requires an update
+     * @dev this function has been updated and is ready for testing
      */
-
     function joinGroup(
         uint256 _id,
         string memory _name
-    ) external groupExsist(_id) {
-        Group storage group = idToGroup[_id];
+    ) external payable groupExists(_id) collateralCompliance(msg.value, _id) {
+        require(_id >= 0, "ID cannot be blank");
+
+        Group storage group = returnGroup(_id);
         address _memberAddress = msg.sender;
 
         require(
             group.currentState == State.initialization,
             "Cannot add members after contribution or collection has started"
         );
+
+        //? Check if the group has reached its maximum number of members
         require(
             group.groupMembers.length < getMaxMembers(_memberAddress),
             "Maximum number of members reached"
         );
 
+        //? Check if the sender is already a member
         if (!isMember[_memberAddress]) {
             uint256 memberId = memberCounter++;
-            group.participants[_memberAddress] = Participant({
-                name: _name,
-                participantAddress: _memberAddress,
-                amountDonated: 0,
-                amountCollected: 0,
-                timeStamp: 0,
-                isBanned: false,
-                isEligble: false,
-                hasReceivedFunds: false,
-                reputation: 1
-            });
+
+            //? Create a new participant
+            Participant storage participant = group.participants[
+                _memberAddress
+            ];
+            participant.name = _name;
+            participant.participantAddress = _memberAddress;
+            participant.reputation = 1;
 
             memberKeys.push(memberId);
 
-            addressToMember[_memberAddress] = Member({
-                id: memberId,
-                name: _name,
-                memberAddress: _memberAddress,
-                amountDonated: 0,
-                amountCollected: 0,
-                reputation: 1
-            });
+            // Create a new member
+            Member storage member = addressToMember[_memberAddress];
+            member.id = memberId;
+            member.name = _name;
+            member.memberAddress = _memberAddress;
+            member.reputation = 1;
 
+            //? Set the member status to true
             isMember[_memberAddress] = true;
         } else {
+            //? If the sender is already a member, update their reputation
             require(
                 addressToMember[_memberAddress].reputation > 0,
                 "Not enough reputation to join group"
@@ -353,9 +387,15 @@ contract Mchango {
             ].reputation;
         }
 
+        //? Add the sender to the group's members list
         group.groupMembers.push(_memberAddress);
+
+        emit joinedGroup(_memberAddress, group.name, block.timestamp);
     }
 
+    /**
+     * @dev //?This function is responsible for setting the group donation amount
+     */
     //! This function is called when the group state is in contribution
     function defineContributionValue(uint256) internal {
         //? Acess the group loop through collateral tracking array
@@ -391,39 +431,90 @@ contract Mchango {
     // }
 
     /**
-     * @notice //! This function requires an update
+     * @dev //? This function has been updated and ready for testing
      *
      */
-    // function donate(address _adminAddress) external payable {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[_adminAddress];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function contribute(
+        uint256 _id
+    )
+        external
+        payable
+        groupExists(_id)
+        contributionCompliance(_id, msg.value)
+        notInitialization(_id)
+        returns (string memory)
+    {
+        require(_id >= 0, "ID cannot be blank");
+        Group storage group = returnGroup(_id);
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        //? Check if the sender is an eligible member of the group
+        require(
+            group.collateralTracking[msg.sender] == group.collateral,
+            "Not a valid member of this group"
+        );
 
-    //     require(
-    //         group.currentState == State.inProgress,
-    //         "You can only donate when the state is in progress"
-    //     );
-    //     require(
-    //         group.contributionValue != 0,
-    //         "Contribution value must be more than zero"
-    //     );
-    //     require(
-    //         msg.value == group.contributionValue,
-    //         "Insufficient amount to contribute"
-    //     );
+        //? Check if the sender is eligible to contribute
+        bool isEligible = false;
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == msg.sender) {
+                isEligible = true;
+                break;
+            }
+        }
 
-    //     (bool success, ) = payable(address(this)).call{value: msg.value}("");
-    //     require(success, "This transaction failed");
+        if (getGroupState(_id) == State.contribution) {
+            require(
+                isEligible,
+                "Only eligible members can contribute in the contribution state"
+            );
 
-    //     group.balance += msg.value;
-    //     group.participants[msg.sender].amountDonated += msg.value;
-    //     group.participants[msg.sender].isEligble = true;
-    //     group.eligibleMembers.push(msg.sender);
+            makeContribution(msg.value);
 
-    //     emit hasDonated(msg.sender, msg.value);
-    // }
+            //? Update participant's contribution and eligibility
+            Participant storage participant = group.participants[msg.sender];
+            participant.amountDonated += msg.value;
+            participant.timeStamp = block.timestamp;
+            participant.isEligible = true;
+            participant.reputation = increaseReputation(msg.sender);
+
+            //? Add the sender to the eligible members list
+            group.eligibleMembers.push(msg.sender);
+        } else if (getGroupState(_id) == State.rotation) {
+            require(
+                isEligible,
+                "Only eligible members can contribute in the rotation state"
+            );
+
+            makeContribution(msg.value);
+
+            //? Update participant's contribution and reputation
+            Participant storage participant = group.participants[msg.sender];
+            participant.amountDonated += msg.value;
+            participant.timeStamp = block.timestamp;
+            participant.reputation = increaseReputation(msg.sender);
+
+            //? Move the sender to the last position of the eligible members list
+            uint indexToRemove = group.eligibleMembers.length - 1;
+            for (uint i = 0; i < group.eligibleMembers.length; i++) {
+                if (group.eligibleMembers[i] == msg.sender) {
+                    indexToRemove = i;
+                    break;
+                }
+            }
+            if (indexToRemove != group.eligibleMembers.length - 1) {
+                group.eligibleMembers[indexToRemove] = group.eligibleMembers[
+                    group.eligibleMembers.length - 1
+                ];
+            }
+            group.eligibleMembers.pop();
+            group.eligibleMembers.push(msg.sender);
+        }
+
+        emit hasDonated(msg.sender, msg.value);
+
+        //? Return a success message
+        return "Contribution successful";
+    }
 
     /**
      * @notice //!this function requires an update
@@ -555,6 +646,14 @@ contract Mchango {
     //         group.participants[member].hasReceivedFunds = false;
     //     }
     // }
+
+    function setPremiumFee(uint256 _fee) external onlyOwner {
+        premiumFee = _fee;
+    }
+
+    function setExclusiveFee(uint256 _fee) external onlyOwner {
+        exclusiveFee = _fee;
+    }
 
     /**
      * @notice //! This function needs an update
