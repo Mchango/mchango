@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-
-
-
-
 /* Errors */
 error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
@@ -411,16 +407,16 @@ contract Mchango {
      * @dev //?This function is responsible for setting the group donation amount
      */
     //! This function is called when the group state is in contribution
-    function defineContributionValue(uint256 id) view internal onlyAdmin(id) returns(uint256) {
-        //? Acess the group loop through collateral tracking array
-        //? find the average of the values in the array
-        //? update the contributionValue
+    function defineContributionValue(
+        uint256 id
+    ) internal view onlyAdmin(id) returns (uint256) {
         Group storage group = returnGroup(id);
         uint256 sumCollateral = 0;
         for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
             sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
         }
-        uint256 contributionValue = sumCollateral/group.eligibleMembers.length;
+        uint256 contributionValue = sumCollateral /
+            group.eligibleMembers.length;
         return contributionValue;
     }
 
@@ -431,42 +427,22 @@ contract Mchango {
     ) external onlyAdmin(_id) {
         Group storage group = returnGroup(_id);
 
-        for(uint256 i = 0; i < group.groupMembers.length; i++) {
+        for (uint256 i = 0; i < group.groupMembers.length; i++) {
             if (group.groupMembers[i] == _groupMemberAddress) {
                 group.groupMembers[i] = group.groupMembers[i + 1];
             }
             group.groupMembers.pop();
         }
 
-        for(uint256 i = 0; i < group.eligibleMembers.length; i++) {
+        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
             if (group.eligibleMembers[i] == _groupMemberAddress) {
                 group.eligibleMembers[i] = group.groupMembers[i + 1];
             }
             group.eligibleMembers.pop();
         }
 
-            group.participants[_groupMemberAddress].isBanned = true;
-            group.participants[_groupMemberAddress].isEligible = false;
-        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        // require(groupIndexes.length > 0, "Group does not exist");
-
-        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        // Group storage group = allGroups[groupIndex];
-
-        // uint256 indexToRemove = findIndexOfAddress(
-        //     group.groupMembers,
-        //     _groupMemberAddress
-        // );
-        // require(
-        //     indexToRemove < group.groupMembers.length,
-        //     "Address not found in group members"
-        // );
-
-        // group.groupMembers[indexToRemove] = group.groupMembers[
-        //     group.groupMembers.length - 1
-        // ];
-        // group.groupMembers.pop();
-
+        group.participants[_groupMemberAddress].isBanned = true;
+        group.participants[_groupMemberAddress].isEligible = false;
         emit memberKicked(group.name, _groupMemberAddress);
     }
 
@@ -493,7 +469,7 @@ contract Mchango {
             "Not a valid member of this group"
         );
         require(
-            group.ableToAddEligibleMembers == true, 
+            group.ableToAddEligibleMembers == true,
             "Unable to join Contribution Round"
         );
 
@@ -564,48 +540,30 @@ contract Mchango {
      * @notice //!this function requires an update
      * ? This purpose of this function is to set the state enum to contribution
      */
-    function startContribution(uint256 id) external onlyAdmin(id) {
-        Group storage group = returnGroup(id);
-        if(group.currentState == State.contribution) {
+    function startContribution(uint256 _id) external onlyAdmin(_id) {
+        Group storage group = returnGroup(_id);
+        if (group.currentState == State.contribution) {
             revert Mchango__GroupAlreadyInContributionState();
         }
         group.currentState = State.contribution;
-        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        // require(groupIndexes.length > 0, "Group does not exist");
-
-        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        // Group storage group = allGroups[groupIndex];
-
-        // require(
-        //     group.currentState == State.notStarted,
-        //     "Collection has already started"
-        // );
-
-        //group.currentState = State.inProgress;
+        group.contributionValue = defineContributionValue(_id);
+        group.ableToAddEligibleMembers = true;
     }
 
     /**
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
-    function endContribution(uint256 id) external onlyAdmin(id) {
-        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-        // require(groupIndexes.length > 0, "Group does not exist");
-
-        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-        // Group storage group = allGroups[groupIndex];
-
-        // require(
-        //     group.currentState == State.inProgress,
-        //     "Collection has not started"
-        // );
-
-        // group.currentState = State.completed;
+    function startRotation(uint256 id) external onlyAdmin(id) {
         Group storage group = returnGroup(id);
-        if(group.currentState == State.rotation) {
+        if (group.currentState == State.rotation) {
             revert Mchango__GroupAlreadyInRotationState();
         }
-        require(group.currentState == State.contribution, "Not currently in Contribution State");
+        require(
+            group.currentState == State.contribution &&
+                group.currentState != State.initialization,
+            "Not currently in Contribution State"
+        );
         group.ableToAddEligibleMembers = false;
         group.currentState = State.rotation;
     }
