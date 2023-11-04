@@ -63,7 +63,6 @@ contract Mchango {
         string name;
         string description;
         uint256 balance;
-        bool ableToAddEligibleMembers;
         address[] groupMembers;
         address[] eligibleMembers;
         mapping(address => Participant) participants;
@@ -274,6 +273,35 @@ contract Mchango {
         }
     }
 
+    function checkIsEligibleMember(uint256 _id) internal view returns (bool) {
+        Group storage group = idToGroup[_id];
+        bool isEligible = false;
+
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == msg.sender) {
+                isEligible = true;
+                break;
+            }
+        }
+
+        return isEligible;
+    }
+
+    //? this function returns eligble member in a group
+    function getEligibleMember(uint256 _id) internal view returns (address) {
+        //? access a group and get the member at the firs slot of the eligible array
+        //? check the particpant isEligible state
+        //? return the address
+    }
+
+    //? this function perforns arithmetic to get new balance
+    function getNewBalance(uint256 _id) internal view returns (uint256) {
+        //? access group
+        //? retrive balance
+        //? subtract gas estimate and 1% commission
+        //? return new balance
+    }
+
     /***
      * @dev //! These are external functions
      */
@@ -408,9 +436,9 @@ contract Mchango {
      */
     //! This function is called when the group state is in contribution
     function defineContributionValue(
-        uint256 id
-    ) internal view onlyAdmin(id) returns (uint256) {
-        Group storage group = returnGroup(id);
+        uint256 _id
+    ) internal view onlyAdmin(_id) groupExists(_id) returns (uint256) {
+        Group storage group = returnGroup(_id);
         uint256 sumCollateral = 0;
         for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
             sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
@@ -424,7 +452,7 @@ contract Mchango {
     function kickGroupMember(
         address _groupMemberAddress,
         uint256 _id
-    ) external onlyAdmin(_id) {
+    ) external onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
 
         for (uint256 i = 0; i < group.groupMembers.length; i++) {
@@ -468,19 +496,9 @@ contract Mchango {
             group.collateralTracking[msg.sender] == group.collateral,
             "Not a valid member of this group"
         );
-        require(
-            group.ableToAddEligibleMembers == true,
-            "Unable to join Contribution Round"
-        );
 
         //? Check if the sender is eligible to contribute
-        bool isEligible = false;
-        for (uint i = 0; i < group.eligibleMembers.length; i++) {
-            if (group.eligibleMembers[i] == msg.sender) {
-                isEligible = true;
-                break;
-            }
-        }
+        bool isEligible = checkIsEligibleMember(_id);
 
         if (getGroupState(_id) == State.contribution) {
             require(
@@ -540,22 +558,25 @@ contract Mchango {
      * @notice //!this function requires an update
      * ? This purpose of this function is to set the state enum to contribution
      */
-    function startContribution(uint256 _id) external onlyAdmin(_id) {
+    function startContribution(
+        uint256 _id
+    ) external onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
         if (group.currentState == State.contribution) {
             revert Mchango__GroupAlreadyInContributionState();
         }
         group.currentState = State.contribution;
         group.contributionValue = defineContributionValue(_id);
-        group.ableToAddEligibleMembers = true;
     }
 
     /**
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
-    function startRotation(uint256 id) external onlyAdmin(id) {
-        Group storage group = returnGroup(id);
+    function startRotation(
+        uint256 _id
+    ) external onlyAdmin(_id) groupExists(_id) {
+        Group storage group = returnGroup(_id);
         if (group.currentState == State.rotation) {
             revert Mchango__GroupAlreadyInRotationState();
         }
@@ -564,102 +585,38 @@ contract Mchango {
                 group.currentState != State.initialization,
             "Not currently in Contribution State"
         );
-        group.ableToAddEligibleMembers = false;
+
         group.currentState = State.rotation;
     }
 
     /**
-     * @notice //! this function needs to be updated
+     * @dev //? this function ends the rotation period
      */
-    // function releaseCollection(
-    //     address _receiver
-    // ) external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function endRotation(uint256 _id) external onlyAdmin(_id) groupExists(_id) {
+        //? check if all participats have isReceivedFunds state as true
+        //? check if all participants  amountCollected state is greater than 0
+        //? remove all addresses from eligibleMembers array
+        //? remove all participants from participants mapping
+        //? reser state to initialization
+    }
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
-
-    //     require(
-    //         group.currentState == State.completed,
-    //         "Can not release collection while donation is still in progress"
-    //     );
-
-    //     Participant storage receiver = group.participants[_receiver];
-    //     require(
-    //         receiver.isEligble &&
-    //             !receiver.hasReceivedFunds &&
-    //             !receiver.isBanned,
-    //         "This user is not allowed to receive funds"
-    //     );
-
-    //     uint256 amountToReceive = group.balance;
-    //     uint256 coolDown;
-
-    //     if (isSubscriberPremium(msg.sender)) {
-    //         coolDown = 6 days;
-    //         uint256 premiumDeduction = (amountToReceive * 15) / 1000;
-    //         amountToReceive -= premiumDeduction;
-    //     } else if (isSubscriberExclusive(msg.sender)) {
-    //         coolDown = 6 days;
-    //     } else {
-    //         coolDown = 30 days;
-    //         uint256 premiumDeduction = (amountToReceive * 3) / 100;
-    //         amountToReceive -= premiumDeduction;
-    //     }
-
-    //     require(amountToReceive > 0, "No funds to release");
-
-    //     require(
-    //         receiver.timeStamp == 0 ||
-    //             block.timestamp > receiver.timeStamp + coolDown,
-    //         "You are still in a cooldown period"
-    //     );
-
-    //     (bool success, ) = payable(receiver.participantAddress).call{
-    //         value: amountToReceive
-    //     }("");
-    //     require(success, "This transaction was not successful");
-
-    //     receiver.amountCollected = amountToReceive;
-    //     receiver.hasReceivedFunds = true;
-    //     receiver.timeStamp = block.timestamp;
-
-    //     uint256 indexToRemove = findIndexOfAddress(
-    //         group.eligibleMembers,
-    //         _receiver
-    //     );
-    //     require(
-    //         indexToRemove < group.eligibleMembers.length,
-    //         "Receiver not found in the list of eligible members"
-    //     );
-    //     group.eligibleMembers[indexToRemove] = group.eligibleMembers[
-    //         group.eligibleMembers.length - 1
-    //     ];
-    //     group.eligibleMembers.pop();
-    //     group.eligibleMembers.push(_receiver);
-
-    //     emit fundsReleased(_receiver, amountToReceive);
-    // }
-
-    // function resetEligibility() external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
-
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
-
-    //     require(
-    //         group.currentState == State.inProgress,
-    //         "Donation period not in progress"
-    //     );
-
-    //     for (uint256 i = 0; i < group.groupMembers.length; i++) {
-    //         address member = group.groupMembers[i];
-    //         group.participants[member].isEligble = true;
-    //         group.participants[member].hasReceivedFunds = false;
-    //     }
-    // }
+    /**
+     * @notice //! This function releases the accumlated funds for that round
+     * @dev //? this function is extremely sensitive and any change should be reported
+     */
+    function disburse(
+        address _eligibleMember,
+        uint256 _id
+    ) external onlyAdmin(_id) {
+        //? get the eligible member
+        //? access the particpants array
+        //? update the amountCollectes state
+        //? update the timestamp
+        //? update the has receivedFunds state
+        //? caculate balance minus gas minus 1% commission
+        //? send new balance to the eligible member
+        //? push eligible member to the back of the array
+    }
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
         premiumFee = _fee;
