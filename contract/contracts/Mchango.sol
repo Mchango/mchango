@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+
+
+
+
+/* Errors */
+error Mchango__GroupAlreadyInContributionState();
+error Mchango__GroupAlreadyInRotationState();
+
 /** @author Mchango
  *  @notice This contract needs to be updated
  */
@@ -59,6 +67,7 @@ contract Mchango {
         string name;
         string description;
         uint256 balance;
+        bool ableToAddEligibleMembers;
         address[] groupMembers;
         address[] eligibleMembers;
         mapping(address => Participant) participants;
@@ -224,7 +233,7 @@ contract Mchango {
      * @dev these are helper functions that are used internally by major functions
      *
      */
-    //!Inrernal Functions
+    //!Internal Functions
     function isSubscriberPremium(
         address _address
     ) internal view returns (bool) {
@@ -332,6 +341,7 @@ contract Mchango {
 
     /**
      * @dev this function has been updated and is ready for testing
+     *
      */
     function joinGroup(
         uint256 _id,
@@ -401,38 +411,64 @@ contract Mchango {
      * @dev //?This function is responsible for setting the group donation amount
      */
     //! This function is called when the group state is in contribution
-    function defineContributionValue(uint256) internal {
+    function defineContributionValue(uint256 id) view internal onlyAdmin(id) returns(uint256) {
         //? Acess the group loop through collateral tracking array
         //? find the average of the values in the array
         //? update the contributionValue
+        Group storage group = returnGroup(id);
+        uint256 sumCollateral = 0;
+        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
+            sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
+        }
+        uint256 contributionValue = sumCollateral/group.eligibleMembers.length;
+        return contributionValue;
     }
 
     //! This function requires an update
-    // function kickGroupMember(
-    //     address _groupMemberAddress
-    // ) external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function kickGroupMember(
+        address _groupMemberAddress,
+        uint256 _id
+    ) external onlyAdmin(_id) {
+        Group storage group = returnGroup(_id);
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        for(uint256 i = 0; i < group.groupMembers.length; i++) {
+            if (group.groupMembers[i] == _groupMemberAddress) {
+                group.groupMembers[i] = group.groupMembers[i + 1];
+            }
+            group.groupMembers.pop();
+        }
 
-    //     uint256 indexToRemove = findIndexOfAddress(
-    //         group.groupMembers,
-    //         _groupMemberAddress
-    //     );
-    //     require(
-    //         indexToRemove < group.groupMembers.length,
-    //         "Address not found in group members"
-    //     );
+        for(uint256 i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == _groupMemberAddress) {
+                group.eligibleMembers[i] = group.groupMembers[i + 1];
+            }
+            group.eligibleMembers.pop();
+        }
 
-    //     group.groupMembers[indexToRemove] = group.groupMembers[
-    //         group.groupMembers.length - 1
-    //     ];
-    //     group.groupMembers.pop();
+            group.participants[_groupMemberAddress].isBanned = true;
+            group.participants[_groupMemberAddress].isEligible = false;
+        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+        // require(groupIndexes.length > 0, "Group does not exist");
 
-    //     emit memberKicked(group.name, _groupMemberAddress);
-    // }
+        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+        // Group storage group = allGroups[groupIndex];
+
+        // uint256 indexToRemove = findIndexOfAddress(
+        //     group.groupMembers,
+        //     _groupMemberAddress
+        // );
+        // require(
+        //     indexToRemove < group.groupMembers.length,
+        //     "Address not found in group members"
+        // );
+
+        // group.groupMembers[indexToRemove] = group.groupMembers[
+        //     group.groupMembers.length - 1
+        // ];
+        // group.groupMembers.pop();
+
+        emit memberKicked(group.name, _groupMemberAddress);
+    }
 
     /**
      * @dev //? This function has been updated and ready for testing
@@ -455,6 +491,10 @@ contract Mchango {
         require(
             group.collateralTracking[msg.sender] == group.collateral,
             "Not a valid member of this group"
+        );
+        require(
+            group.ableToAddEligibleMembers == true, 
+            "Unable to join Contribution Round"
         );
 
         //? Check if the sender is eligible to contribute
@@ -524,39 +564,51 @@ contract Mchango {
      * @notice //!this function requires an update
      * ? This purpose of this function is to set the state enum to contribution
      */
-    // function startCollection() external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function startContribution(uint256 id) external onlyAdmin(id) {
+        Group storage group = returnGroup(id);
+        if(group.currentState == State.contribution) {
+            revert Mchango__GroupAlreadyInContributionState();
+        }
+        group.currentState = State.contribution;
+        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+        // require(groupIndexes.length > 0, "Group does not exist");
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+        // Group storage group = allGroups[groupIndex];
 
-    //     require(
-    //         group.currentState == State.notStarted,
-    //         "Collection has already started"
-    //     );
+        // require(
+        //     group.currentState == State.notStarted,
+        //     "Collection has already started"
+        // );
 
-    //     group.currentState = State.inProgress;
-    // }
+        //group.currentState = State.inProgress;
+    }
 
     /**
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
-    // function endCollection() external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function endContribution(uint256 id) external onlyAdmin(id) {
+        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+        // require(groupIndexes.length > 0, "Group does not exist");
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+        // Group storage group = allGroups[groupIndex];
 
-    //     require(
-    //         group.currentState == State.inProgress,
-    //         "Collection has not started"
-    //     );
+        // require(
+        //     group.currentState == State.inProgress,
+        //     "Collection has not started"
+        // );
 
-    //     group.currentState = State.completed;
-    // }
+        // group.currentState = State.completed;
+        Group storage group = returnGroup(id);
+        if(group.currentState == State.rotation) {
+            revert Mchango__GroupAlreadyInRotationState();
+        }
+        require(group.currentState == State.contribution, "Not currently in Contribution State");
+        group.ableToAddEligibleMembers = false;
+        group.currentState = State.rotation;
+    }
 
     /**
      * @notice //! this function needs to be updated
