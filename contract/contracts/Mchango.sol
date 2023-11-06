@@ -466,7 +466,6 @@ contract Mchango {
         //     group.groupMembers.length - 1
         // ];
         // group.groupMembers.pop();
-
         emit memberKicked(group.name, _groupMemberAddress);
     }
 
@@ -569,6 +568,7 @@ contract Mchango {
         if(group.currentState == State.contribution) {
             revert Mchango__GroupAlreadyInContributionState();
         }
+        group.ableToAddEligibleMembers = true;
         group.currentState = State.contribution;
         // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
         // require(groupIndexes.length > 0, "Group does not exist");
@@ -714,25 +714,35 @@ contract Mchango {
     /**
      * @notice //! This function needs an update
      */
-    // function moderateParticipant(
-    //     address _participant,
-    //     bool _verdict
-    // ) external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function moderateParticipant(
+        address _participant,
+        uint256 id
+    ) external onlyAdmin(id) {
+        // uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
+        // require(groupIndexes.length > 0, "Group does not exist");
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        // uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
+        // Group storage group = allGroups[groupIndex];
 
-    //     require(
-    //         group.currentState == State.notStarted,
-    //         "Group is not in join state"
-    //     );
+        // require(
+        //     group.currentState == State.notStarted,
+        //     "Group is not in join state"
+        // );
 
-    //     group.participants[_participant].isBanned = _verdict;
+        // group.participants[_participant].isBanned = _verdict;
 
-    //     emit participantVerdicit(_verdict, _participant);
-    // }
+        // emit participantVerdicit(_verdict, _participant);
+        Group storage group = returnGroup(id);
+
+        for(uint256 i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == _participant) {
+                group.eligibleMembers[i] = group.groupMembers[i + 1];
+            }
+            group.eligibleMembers.pop();
+        }
+        group.participants[_participant].isBanned = true;
+        group.participants[_participant].isEligible = false;
+    }
 
     receive() external payable {}
 }
