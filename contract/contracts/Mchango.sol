@@ -593,11 +593,24 @@ contract Mchango {
      * @dev //? this function ends the rotation period
      */
     function endRotation(uint256 _id) external onlyAdmin(_id) groupExists(_id) {
-        //? check if all participats have isReceivedFunds state as true
-        //? check if all participants  amountCollected state is greater than 0
-        //? remove all addresses from eligibleMembers array
-        //? remove all participants from participants mapping
-        //? reser state to initialization
+        Group storage group = idToGroup[_id];
+
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            address participantAddress = group.eligibleMembers[i];
+            require(
+                group.participants[participantAddress].hasReceivedFunds == true,
+                "Not all participants have received funds"
+            );
+
+            //? Clear the participant's data
+            delete group.participants[participantAddress];
+        }
+
+        //? Clear the eligibleMembers array
+        delete group.eligibleMembers;
+
+        //? Reset the state to initialization
+        group.currentState = State.initialization;
     }
 
     /**
