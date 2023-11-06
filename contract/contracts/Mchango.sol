@@ -32,6 +32,9 @@ contract Mchango {
         Tier _subscriptionPlan,
         uint256 _subscriptionAmount
     );
+    event inContributionPhase(uint _id);
+    event inRotationPhase(uint _id);
+    event rotationEnded(uint _id);
 
     //!Project Enums
 
@@ -567,6 +570,8 @@ contract Mchango {
         }
         group.currentState = State.contribution;
         group.contributionValue = defineContributionValue(_id);
+
+        emit inContributionPhase(_id);
     }
 
     /**
@@ -587,6 +592,8 @@ contract Mchango {
         );
 
         group.currentState = State.rotation;
+
+        emit inRotationPhase(_id);
     }
 
     /**
@@ -609,8 +616,15 @@ contract Mchango {
         //? Clear the eligibleMembers array
         delete group.eligibleMembers;
 
+        //? require all the funds in rotation has been disbursed
+        require(
+            group.balance == 0,
+            "There is still funds left in group balance"
+        );
         //? Reset the state to initialization
         group.currentState = State.initialization;
+
+        emit rotationEnded(_id);
     }
 
     /**
