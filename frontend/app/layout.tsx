@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Nchango',
+  title: 'Mchango',
   description: 'A Rotating Savings & Contribution Platform',
 };
 
