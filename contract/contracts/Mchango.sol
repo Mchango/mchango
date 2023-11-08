@@ -691,6 +691,7 @@ contract Mchango {
             }
         }
 
+        //? check if address is already in last position
         if (indexToRemove != group.eligibleMembers.length - 1) {
             group.eligibleMembers[indexToRemove] = group.eligibleMembers[
                 group.eligibleMembers.length - 1
