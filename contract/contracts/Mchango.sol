@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 /* Errors */
 error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
+error Mchango__EitherNotFoundOrNotEligible();
 
 /** @author Mchango
  *  @notice This contract needs to be updated
@@ -299,7 +300,14 @@ contract Mchango {
     //? this function returns eligble member in a group
     function getEligibleMember(uint256 _id) internal view returns (address) {
         //? access a group and get the member at the firs slot of the eligible array
+        Group storage group = returnGroup(_id);
+        address eligible = group.eligibleMembers[0];
         //? check the particpant isEligible state
+        if(group.participants[eligible].isEligible == true){
+            return eligible;
+        }else {
+            revert Mchango__EitherNotFoundOrNotEligible();
+        }
         //? return the address
     }
 
