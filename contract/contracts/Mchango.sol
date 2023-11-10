@@ -568,7 +568,6 @@ contract Mchango {
         if (group.currentState == State.contribution) {
             revert Mchango__GroupAlreadyInContributionState();
         }
-        group.ableToAddEligibleMembers = true;
         group.currentState = State.contribution;
         group.contributionValue = defineContributionValue(_id);
 
