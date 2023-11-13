@@ -306,9 +306,15 @@ contract Mchango {
     //? this function perforns arithmetic to get new balance
     function getNewBalance(uint256 _id) internal view returns (uint256) {
         //? access group
+        Group storage group = returnGroup(_id);
         //? retrive balance
+        uint256 balance = group.balance;
+        uint256 gasEstimate = gasleft();
         //? subtract gas estimate and 1% commission
+        uint256 balanceAfterGasEstimate = balance - gasEstimate;
+        uint256 balanceToBeSent = balanceAfterGasEstimate - (balanceAfterGasEstimate / 100);
         //? return new balance
+        return balanceToBeSent;
     }
 
     /***
