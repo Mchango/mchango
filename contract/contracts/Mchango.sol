@@ -19,7 +19,7 @@ contract Mchango {
     //!Project Events
     event hasCreatedGroup(address indexed _address, string _description);
     event hasDonated(address indexed _participant, uint256 _amount);
-    event fundsReleased(address indexed _participant, uint256 _amount);
+    event hasReceivedFunds(address indexed _participant, uint256 _amount);
     event memberKicked(string _name, address indexed _memberAddress);
     event participantVerdicit(bool _isBanned, address indexed _participant);
     event joinedGroup(
@@ -168,6 +168,12 @@ contract Mchango {
         _;
     }
 
+    modifier idCompliance(uint256 _id) {
+        require(_id > 0, "identifier can not be blank");
+
+        _;
+    }
+
     modifier notInitialization(uint256 _id) {
         Group storage group = returnGroup(_id);
         require(
@@ -300,9 +306,15 @@ contract Mchango {
     //? this function perforns arithmetic to get new balance
     function getNewBalance(uint256 _id) internal view returns (uint256) {
         //? access group
+        Group storage group = returnGroup(_id);
         //? retrive balance
+        uint256 balance = group.balance;
+        uint256 gasEstimate = gasleft();
         //? subtract gas estimate and 1% commission
+        uint256 balanceAfterGasEstimate = balance - gasEstimate;
+        uint256 balanceToBeSent = balanceAfterGasEstimate - (balanceAfterGasEstimate / 100);
         //? return new balance
+        return balanceToBeSent;
     }
 
     /***
@@ -346,6 +358,7 @@ contract Mchango {
     )
         external
         view
+        idCompliance(_id)
         groupExists(_id)
         returns (
             string memory,
@@ -373,9 +386,13 @@ contract Mchango {
     function joinGroup(
         uint256 _id,
         string memory _name
-    ) external payable groupExists(_id) collateralCompliance(msg.value, _id) {
-        require(_id >= 0, "ID cannot be blank");
-
+    )
+        external
+        payable
+        idCompliance(_id)
+        groupExists(_id)
+        collateralCompliance(msg.value, _id)
+    {
         Group storage group = returnGroup(_id);
         address _memberAddress = msg.sender;
 
@@ -440,7 +457,14 @@ contract Mchango {
     //! This function is called when the group state is in contribution
     function defineContributionValue(
         uint256 _id
-    ) internal view onlyAdmin(_id) groupExists(_id) returns (uint256) {
+    )
+        internal
+        view
+        idCompliance(_id)
+        onlyAdmin(_id)
+        groupExists(_id)
+        returns (uint256)
+    {
         Group storage group = returnGroup(_id);
         uint256 sumCollateral = 0;
         for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
@@ -455,7 +479,7 @@ contract Mchango {
     function kickGroupMember(
         address _groupMemberAddress,
         uint256 _id
-    ) external onlyAdmin(_id) groupExists(_id) {
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
 
         for (uint256 i = 0; i < group.groupMembers.length; i++) {
@@ -486,12 +510,12 @@ contract Mchango {
     )
         external
         payable
+        idCompliance(_id)
         groupExists(_id)
         contributionCompliance(_id, msg.value)
         notInitialization(_id)
         returns (string memory)
     {
-        require(_id >= 0, "ID cannot be blank");
         Group storage group = returnGroup(_id);
 
         //? Check if the sender is an eligible member of the group
@@ -563,7 +587,7 @@ contract Mchango {
      */
     function startContribution(
         uint256 _id
-    ) external onlyAdmin(_id) groupExists(_id) {
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
         if (group.currentState == State.contribution) {
             revert Mchango__GroupAlreadyInContributionState();
@@ -580,7 +604,7 @@ contract Mchango {
      */
     function startRotation(
         uint256 _id
-    ) external onlyAdmin(_id) groupExists(_id) {
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
         if (group.currentState == State.rotation) {
             revert Mchango__GroupAlreadyInRotationState();
@@ -599,7 +623,9 @@ contract Mchango {
     /**
      * @dev //? this function ends the rotation period
      */
-    function endRotation(uint256 _id) external onlyAdmin(_id) groupExists(_id) {
+    function endRotation(
+        uint256 _id
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = idToGroup[_id];
 
         for (uint i = 0; i < group.eligibleMembers.length; i++) {
@@ -632,17 +658,56 @@ contract Mchango {
      * @dev //? this function is extremely sensitive and any change should be reported
      */
     function disburse(
-        address _eligibleMember,
         uint256 _id
-    ) external onlyAdmin(_id) {
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
+        Group storage group = idToGroup[_id];
+        require(
+            group.currentState == State.rotation,
+            "Can only call disburse in rotation state"
+        );
+
         //? get the eligible member
+        address eligibleParticipant = getEligibleMember(_id);
+
         //? access the particpants array
+        Participant memory participant = group.participants[
+            eligibleParticipant
+        ];
+
         //? update the amountCollectes state
+        uint256 amount = getNewBalance(_id);
+        participant.amountCollected = amount;
+
         //? update the timestamp
+        participant.timeStamp = block.timestamp;
+
         //? update the has receivedFunds state
-        //? caculate balance minus gas minus 1% commission
-        //? send new balance to the eligible member
+        participant.hasReceivedFunds = true;
+        (bool sent, ) = payable(participant.participantAddress).call{
+            value: amount
+        }("");
+        require(sent, "transaction failed");
+
         //? push eligible member to the back of the array
+        uint indexToRemove = group.eligibleMembers.length - 1;
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == participant.participantAddress) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        //? check if address is already in last position
+        if (indexToRemove != group.eligibleMembers.length - 1) {
+            group.eligibleMembers[indexToRemove] = group.eligibleMembers[
+                group.eligibleMembers.length - 1
+            ];
+        }
+
+        group.eligibleMembers.pop();
+        group.eligibleMembers.push(participant.participantAddress);
+
+        emit hasReceivedFunds(participant.participantAddress, amount);
     }
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
@@ -656,25 +721,25 @@ contract Mchango {
     /**
      * @notice //! This function needs an update
      */
-    // function moderateParticipant(
-    //     address _participant,
-    //     bool _verdict
-    // ) external onlyAdmin(msg.sender) {
-    //     uint256[] storage groupIndexes = adminToGroupIndexes[msg.sender];
-    //     require(groupIndexes.length > 0, "Group does not exist");
+    function moderateParticipant(
+        address _participant,
+        uint256 _id
+    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
+        require(_participant != address(0), "enter a participant to moderate");
+        Group storage group = returnGroup(_id);
 
-    //     uint256 groupIndex = groupIndexes[groupIndexes.length - 1];
-    //     Group storage group = allGroups[groupIndex];
+        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
+            if (group.eligibleMembers[i] == _participant) {
+                group.eligibleMembers[i] = group.groupMembers[i + 1];
+            }
+            group.eligibleMembers.pop();
+        }
+        group.participants[_participant].isBanned = true;
 
-    //     require(
-    //         group.currentState == State.notStarted,
-    //         "Group is not in join state"
-    //     );
-
-    //     group.participants[_participant].isBanned = _verdict;
-
-    //     emit participantVerdicit(_verdict, _participant);
-    // }
+        //? decrement reputation
+        group.participants[_participant].reputation--;
+        group.participants[_participant].isEligible = false;
+    }
 
     receive() external payable {}
 }
