@@ -381,6 +381,9 @@ contract Mchango {
         }
     }
 
+    /**
+     * @dev this function uses the shift method of array removal, it preserves the order of the array but is less gas eefficient
+     */
     function handleExcessCollateral(address _defaulter, uint256 _id) internal {
         Group storage group = returnGroup(_id);
 
@@ -408,6 +411,10 @@ contract Mchango {
         group.eligibleMembers.pop();
     }
 
+    /**
+     * @dev this function uses the shift method of array removal, it preserves the order of the array but is less gas eefficient
+     * @dev when a group member has collateral value less than the contribution amount, he is removed from the group
+     */
     function handleLessCollateral(address _defaulter, uint256 _id) internal {
         Group storage group = returnGroup(_id);
 
@@ -432,6 +439,18 @@ contract Mchango {
             group.eligibleMembers[n] = group.eligibleMembers[n + 1];
         }
         group.eligibleMembers.pop();
+
+        //? remove the member from the groupMembers array
+        for (uint i = 0; i < group.groupMembers.length; i++) {
+            if (group.groupMembers[i] == _defaulter) {
+                group.groupMembers[i] = group.groupMembers[
+                    group.groupMembers.length - 1
+                ];
+                group.groupMembers.pop();
+            }
+        }
+
+        emit memberKicked(group.participants[_defaulter].name, _defaulter);
     }
 
     /***
