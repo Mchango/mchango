@@ -393,16 +393,13 @@ contract Mchango {
         addressToMember[_defaulter].reputation -= 1;
 
         //? Find the index of defaulterToMove in eligibleMembers array
-        uint256 indexToRemove = 0;
-        for (uint256 j = 0; j < group.eligibleMembers.length; j++) {
-            if (group.eligibleMembers[j] == _defaulter) {
-                indexToRemove = j;
-                break;
-            }
-        }
+        uint256 indexToRemove = Helper.calculateIndexToRemove(
+            _defaulter,
+            group.eligibleMembers
+        );
 
         //? Remove the defaulter from eligibleMembers array
-        Helper.removeIndex(indexToRemove, group.eligibleMembers);
+        Helper.shiftAndRemoveIndex(indexToRemove, group.eligibleMembers);
     }
 
     /**
@@ -416,26 +413,16 @@ contract Mchango {
         addressToMember[_defaulter].reputation -= 2;
 
         //? Find index of defaulter in eligibleMembers array
-        uint256 indexToRemove = 0;
-        for (uint256 m = 0; m < group.eligibleMembers.length; m++) {
-            if (group.eligibleMembers[m] == _defaulter) {
-                indexToRemove = m;
-                break;
-            }
-        }
+        uint256 indexToRemove = Helper.calculateIndexToRemove(
+            _defaulter,
+            group.eligibleMembers
+        );
 
         //? Remove the defaulter from eligibleMembers array
-        Helper.removeIndex(indexToRemove, group.eligibleMembers);
+        Helper.shiftAndRemoveIndex(indexToRemove, group.eligibleMembers);
 
         //? remove the member from the groupMembers array
-        for (uint i = 0; i < group.groupMembers.length; i++) {
-            if (group.groupMembers[i] == _defaulter) {
-                group.groupMembers[i] = group.groupMembers[
-                    group.groupMembers.length - 1
-                ];
-                group.groupMembers.pop();
-            }
-        }
+        Helper.removeAddress(_defaulter, group.groupMembers);
 
         emit memberKicked(group.participants[_defaulter].name, _defaulter);
     }
@@ -602,19 +589,14 @@ contract Mchango {
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
 
-        for (uint256 i = 0; i < group.groupMembers.length; i++) {
-            if (group.groupMembers[i] == _groupMemberAddress) {
-                group.groupMembers[i] = group.groupMembers[i + 1];
-            }
-            group.groupMembers.pop();
-        }
+        //? remives address from group members
+        Helper.removeAddress(_groupMemberAddress, group.groupMembers);
 
-        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
-            if (group.eligibleMembers[i] == _groupMemberAddress) {
-                group.eligibleMembers[i] = group.groupMembers[i + 1];
-            }
-            group.eligibleMembers.pop();
-        }
+        //? This removes an address while maintaining the order of the array
+        Helper.shiftAndRemoveAddress(
+            _groupMemberAddress,
+            group.eligibleMembers
+        );
 
         group.participants[_groupMemberAddress].isBanned = true;
         group.participants[_groupMemberAddress].isEligible = false;
@@ -678,20 +660,12 @@ contract Mchango {
             participant.timeStamp = block.timestamp;
             participant.reputation = increaseReputation(msg.sender);
 
-            //? Move the sender to the last position of the eligible members list
-            uint indexToRemove = group.eligibleMembers.length - 1;
-            for (uint i = 0; i < group.eligibleMembers.length; i++) {
-                if (group.eligibleMembers[i] == msg.sender) {
-                    indexToRemove = i;
-                    break;
-                }
-            }
-            if (indexToRemove != group.eligibleMembers.length - 1) {
-                group.eligibleMembers[indexToRemove] = group.eligibleMembers[
-                    group.eligibleMembers.length - 1
-                ];
-            }
-            group.eligibleMembers.pop();
+            //? This ensures that contributers are arranged in order of their contribution
+            uint indexToRemove = Helper.calculateIndexToRemove(
+                msg.sender,
+                group.eligibleMembers
+            );
+            Helper.shiftAndRemoveIndex(indexToRemove, group.eligibleMembers);
             group.eligibleMembers.push(msg.sender);
         }
 
