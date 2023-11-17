@@ -16,6 +16,8 @@ const config: Config = {
 
       fontFamily: {
         satoshi: ['Satoshi', 'sans-serif'],
+        nunito: ['Nunito', 'sans-serif']
+
       },
 
       colors: {
