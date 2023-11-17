@@ -427,6 +427,14 @@ contract Mchango {
         emit memberKicked(group.participants[_defaulter].name, _defaulter);
     }
 
+    //? this function is triggered when the disburse function is called
+    //? this ensures contributions can be tracked and rotations can be managed till all members hasReceived state is true;
+    function resetMembersDonationState() internal {
+        //todo: ensure group state is contribution
+        //todo: access the group
+        //todo: fetch members and reset their hasDonatedState to false and timestamp to 0
+    }
+
     /***
      * @dev //! These are external functions
      */
@@ -658,6 +666,7 @@ contract Mchango {
             Participant storage participant = group.participants[msg.sender];
             participant.amountDonated += msg.value;
             participant.timeStamp = block.timestamp;
+            participant.hasDonated = true;
             participant.reputation = increaseReputation(msg.sender);
 
             //? This ensures that contributers are arranged in order of their contribution
@@ -789,22 +798,15 @@ contract Mchango {
         require(sent, "transaction failed");
 
         //? push eligible member to the back of the array
-        uint indexToRemove = group.eligibleMembers.length - 1;
-        for (uint i = 0; i < group.eligibleMembers.length; i++) {
-            if (group.eligibleMembers[i] == participant.participantAddress) {
-                indexToRemove = i;
-                break;
-            }
-        }
+        uint indexToRemove = Helper.calculateIndexToRemove(
+            participant.participantAddress,
+            group.eligibleMembers
+        );
 
         //? check if address is already in last position
         if (indexToRemove != group.eligibleMembers.length - 1) {
-            group.eligibleMembers[indexToRemove] = group.eligibleMembers[
-                group.eligibleMembers.length - 1
-            ];
+            Helper.shiftAndRemoveIndex(indexToRemove, group.eligibleMembers);
         }
-
-        group.eligibleMembers.pop();
         group.eligibleMembers.push(participant.participantAddress);
 
         //todo: reset members has donated state to false
