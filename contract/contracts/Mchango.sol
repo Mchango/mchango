@@ -10,9 +10,8 @@ error Mchango__GroupAlreadyInRotationState();
  */
 contract Mchango {
     /**
-     * todo: update the rotation logic
-     * todo: update group storage state
-     * todo: update group access
+     * todo: implement the penalize function
+     * todo: enhance the disburse function to set participant has donated state to true
      * todo: implement automatic deduction
      */
 
@@ -66,6 +65,8 @@ contract Mchango {
         string name;
         string description;
         uint256 balance;
+        uint256 timer;
+        uint256 timeLimit;
         address[] groupMembers;
         address[] eligibleMembers;
         mapping(address => Participant) participants;
@@ -82,6 +83,7 @@ contract Mchango {
         bool isBanned;
         bool isEligible;
         bool hasReceivedFunds;
+        bool hasDonated;
         uint256 reputation;
     }
 
@@ -298,23 +300,157 @@ contract Mchango {
 
     //? this function returns eligble member in a group
     function getEligibleMember(uint256 _id) internal view returns (address) {
-        //? access a group and get the member at the firs slot of the eligible array
-        //? check the particpant isEligible state
-        //? return the address
+        Group storage group = returnGroup(_id);
+        address eligibleMember = group.eligibleMembers[0];
+        require(
+            group.participants[eligibleMember].isEligible,
+            "Member is not eligible to receive funds"
+        );
+
+        return eligibleMember;
     }
 
     //? this function perforns arithmetic to get new balance
     function getNewBalance(uint256 _id) internal view returns (uint256) {
-        //? access group
         Group storage group = returnGroup(_id);
-        //? retrive balance
+
         uint256 balance = group.balance;
         uint256 gasEstimate = gasleft();
-        //? subtract gas estimate and 1% commission
         uint256 balanceAfterGasEstimate = balance - gasEstimate;
-        uint256 balanceToBeSent = balanceAfterGasEstimate - (balanceAfterGasEstimate / 100);
-        //? return new balance
+        uint256 balanceToBeSent = balanceAfterGasEstimate -
+            (balanceAfterGasEstimate / 100);
+
         return balanceToBeSent;
+    }
+
+    /**
+     * @dev This function was written this way to successfully return the defaulters in memory
+     */
+    function getDefaulters(
+        uint256 _id
+    ) internal view groupExists(_id) returns (address[] memory defaulters) {
+        Group storage group = returnGroup(_id);
+
+        require(
+            group.currentState == State.rotation,
+            "Function can only be called in rotation state"
+        );
+
+        uint256 defaulterCount = 0;
+
+        //? Count the number of defaulters
+        for (uint256 i = 0; i < group.groupMembers.length; i++) {
+            address member = group.groupMembers[i];
+            if (!group.participants[member].hasDonated) {
+                defaulterCount++;
+            }
+        }
+
+        //? Initialize the array with the correct length
+        defaulters = new address[](defaulterCount);
+        uint256 index = 0;
+
+        //? Populate the array with defaulter addresses
+        for (uint256 i = 0; i < group.groupMembers.length; i++) {
+            address member = group.groupMembers[i];
+            if (!group.participants[member].hasDonated) {
+                defaulters[index] = member;
+                index++;
+            }
+        }
+
+        return defaulters;
+    }
+
+    function collateralAndDisciplineTrigger(
+        uint256 _id,
+        address[] memory _defaulters
+    ) internal {
+        Group storage group = returnGroup(_id);
+
+        for (uint256 i = 0; i < _defaulters.length; i++) {
+            uint256 collateralAmount = group.collateralTracking[_defaulters[i]];
+
+            if (collateralAmount > group.contributionValue) {
+                address defaulterToMove = _defaulters[i];
+                handleExcessCollateral(defaulterToMove, _id);
+            } else if (collateralAmount < group.contributionValue) {
+                address defaulterToMove = _defaulters[i];
+                handleLessCollateral(defaulterToMove, _id);
+            }
+        }
+    }
+
+    /**
+     * @dev this function uses the shift method of array removal, it preserves the order of the array but is less gas eefficient
+     */
+    function handleExcessCollateral(address _defaulter, uint256 _id) internal {
+        Group storage group = returnGroup(_id);
+
+        //? Subtract contributionValue from collateralAmount
+        group.collateralTracking[_defaulter] - group.contributionValue;
+        addressToMember[_defaulter].reputation -= 1;
+
+        //? Find the index of defaulterToMove in eligibleMembers array
+        uint256 indexToRemove = 0;
+        for (uint256 j = 0; j < group.eligibleMembers.length; j++) {
+            if (group.eligibleMembers[j] == _defaulter) {
+                indexToRemove = j;
+                break;
+            }
+        }
+
+        //? Remove the defaulter from eligibleMembers array
+        for (
+            uint256 k = indexToRemove;
+            k < group.eligibleMembers.length - 1;
+            k++
+        ) {
+            group.eligibleMembers[k] = group.eligibleMembers[k + 1];
+        }
+        group.eligibleMembers.pop();
+    }
+
+    /**
+     * @dev this function uses the shift method of array removal, it preserves the order of the array but is less gas eefficient
+     * @dev when a group member has collateral value less than the contribution amount, he is removed from the group
+     */
+    function handleLessCollateral(address _defaulter, uint256 _id) internal {
+        Group storage group = returnGroup(_id);
+
+        group.contributionValue - group.collateralTracking[_defaulter];
+        addressToMember[_defaulter].reputation -= 2;
+
+        //? Find index of defaulter in eligibleMembers array
+        uint256 indexToRemove = 0;
+        for (uint256 m = 0; m < group.eligibleMembers.length; m++) {
+            if (group.eligibleMembers[m] == _defaulter) {
+                indexToRemove = m;
+                break;
+            }
+        }
+
+        //? Remove the defaulter from eligibleMembers array
+        for (
+            uint256 n = indexToRemove;
+            n < group.eligibleMembers.length - 1;
+            n++
+        ) {
+            group.eligibleMembers[n] = group.eligibleMembers[n + 1];
+        }
+        group.eligibleMembers.pop();
+
+        //? remove the member from the groupMembers array
+        for (uint i = 0; i < group.groupMembers.length; i++) {
+            if (group.groupMembers[i] == _defaulter) {
+                group.groupMembers[i] = group.groupMembers[
+                    group.groupMembers.length - 1
+                ];
+                group.groupMembers.pop();
+            }
+        }
+
+        emit memberKicked(group.participants[_defaulter].name, _defaulter);
     }
 
     /***
@@ -324,6 +460,7 @@ contract Mchango {
     function createGroup(
         string memory _groupDescription,
         string memory _name,
+        uint256 _contributionTimeLimit,
         uint256 _collateralValue
     ) external {
         uint256 id = counter++;
@@ -336,6 +473,7 @@ contract Mchango {
         newGroup.name = _name;
         newGroup.description = _groupDescription;
         newGroup.balance = 0;
+        newGroup.timeLimit = _contributionTimeLimit;
         newGroup.currentState = State.initialization;
 
         if (isSubscriberPremium(admin)) {
@@ -421,6 +559,7 @@ contract Mchango {
             ];
             participant.name = _name;
             participant.participantAddress = _memberAddress;
+            participant.hasDonated = false;
             participant.reputation = 1;
 
             memberKeys.push(memberId);
@@ -653,6 +792,12 @@ contract Mchango {
         emit rotationEnded(_id);
     }
 
+    function penalize() public {
+        //todo: check if group state is rotation
+        //todo: get the defaulters
+        //todo: fire collateralAndDisciplineTrigger
+    }
+
     /**
      * @notice //! This function releases the accumlated funds for that round
      * @dev //? this function is extremely sensitive and any change should be reported
@@ -706,6 +851,8 @@ contract Mchango {
 
         group.eligibleMembers.pop();
         group.eligibleMembers.push(participant.participantAddress);
+
+        //todo: reset members has donated state to false
 
         emit hasReceivedFunds(participant.participantAddress, amount);
     }
