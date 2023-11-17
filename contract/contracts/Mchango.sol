@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
+import "./Helper.sol";
 
 /* Errors */
 error Mchango__GroupAlreadyInContributionState();
@@ -63,7 +64,7 @@ contract Mchango {
         uint256 contributionValue;
         address admin;
         string name;
-        string description;
+        bytes32 description;
         uint256 balance;
         uint256 timer;
         uint256 timeLimit;
@@ -401,14 +402,7 @@ contract Mchango {
         }
 
         //? Remove the defaulter from eligibleMembers array
-        for (
-            uint256 k = indexToRemove;
-            k < group.eligibleMembers.length - 1;
-            k++
-        ) {
-            group.eligibleMembers[k] = group.eligibleMembers[k + 1];
-        }
-        group.eligibleMembers.pop();
+        Helper.removeIndex(indexToRemove, group.eligibleMembers);
     }
 
     /**
@@ -431,14 +425,7 @@ contract Mchango {
         }
 
         //? Remove the defaulter from eligibleMembers array
-        for (
-            uint256 n = indexToRemove;
-            n < group.eligibleMembers.length - 1;
-            n++
-        ) {
-            group.eligibleMembers[n] = group.eligibleMembers[n + 1];
-        }
-        group.eligibleMembers.pop();
+        Helper.removeIndex(indexToRemove, group.eligibleMembers);
 
         //? remove the member from the groupMembers array
         for (uint i = 0; i < group.groupMembers.length; i++) {
@@ -471,7 +458,7 @@ contract Mchango {
         newGroup.collateral = _collateralValue;
         newGroup.admin = admin;
         newGroup.name = _name;
-        newGroup.description = _groupDescription;
+        newGroup.description = Helper.stringToBytes32(_groupDescription);
         newGroup.balance = 0;
         newGroup.timeLimit = _contributionTimeLimit;
         newGroup.currentState = State.initialization;
@@ -498,13 +485,7 @@ contract Mchango {
         view
         idCompliance(_id)
         groupExists(_id)
-        returns (
-            string memory,
-            string memory,
-            uint256,
-            address,
-            address[] memory
-        )
+        returns (string memory, bytes32, uint256, address, address[] memory)
     {
         Group storage group = idToGroup[_id];
 
