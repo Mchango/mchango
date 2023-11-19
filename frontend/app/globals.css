@@ -34,3 +34,12 @@
     @apply sm:pb-24 pb-12;
   }
 }
+.text-gra {
+  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #B09DDD 100%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+.getbtn-grad {
+  
+}

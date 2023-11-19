@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import React from 'react';
-import mchlogo from '../assets/mchlogo.svg'
+import mchlogo from '../assets/mchlogo.svg';
+// import '../global.css'
 
 const GatewayLanding = () => {
   return (
@@ -11,7 +12,7 @@ const GatewayLanding = () => {
                 <Image src={mchlogo} alt='mchlogo' className='' />
                 <div className='text-[52px] text-[#FFF] font-bold leading-normal my-auto ml-[15px] '>Mchango_</div>
             </div>
-            <div className="text-[48px] font-bold bg-gradient-to-r from-teal-800 to-purple-700 bg-clip-text text-transparent leading-normal mb-[21px]">Gateway to Smart Savings and Contributions</div>
+            <div className="text-[48px] font-bold text-gra leading-normal mb-[21px]">Gateway to Smart Savings and Contributions</div>
             <div className='text-[24px] text-[#E6DEFF] font-bold leading-[33px] tracking-[0.72px] text-center'>
             Dive into collaborative savings, real-time insights, and a thriving community. Let's elevate your crypto journey together.
             </div>
