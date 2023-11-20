@@ -40,6 +40,13 @@ background-clip: text;
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 }
-.getbtn-grad {
-  
+.builbtn-grad {
+  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #B09DDD 61.35%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;  
+}
+:hover.smartbg {
+  border-radius: 40px;
+background: linear-gradient(180deg, #107B88 0%, #6A63B6 100%);
 }
