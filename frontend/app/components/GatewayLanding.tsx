@@ -16,9 +16,9 @@ const GatewayLanding = () => {
             <div className='text-[24px] text-[#E6DEFF] font-bold leading-[33px] tracking-[0.72px] text-center'>
             Dive into collaborative savings, real-time insights, and a thriving community. Let's elevate your crypto journey together.
             </div>
-            <div className='text-[24px] font-bold leading-[33px] tracking-[0.72px] text-center text-[#9be9ff] mt-[30px] mb-[52px] '>Begin contributing, saving, and growing. </div>
+            <div className='text-[24px] font-bold leading-[33px] tracking-[0.72px] text-center builbtn-grad mt-[30px] mb-[52px] '>Begin contributing, saving, and growing. </div>
             <div className='flex justify-center '>
-            <button className='text-[16px] tracking-[0.8px] text-[#fff] py-[18px] px-[28px] rounded-[15px] bg-gradient-to-r from-teal-800 to-purple-700 hover:to-teal-700 gap-[10px] w-[210px] h-[58px] '>Get Started</button>
+            <button className='text-[16px] tracking-[0.8px] text-[#fff] py-[18px] px-[28px] rounded-[15px] bg-[#008080] hover:bg-[#096b6b] gap-[10px] w-[210px] h-[58px] '>Get Started</button>
             </div>
         </div>
         
