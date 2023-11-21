@@ -5,6 +5,7 @@ import "./Helper.sol";
 /* Errors */
 error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
+error Mchango__EitherNotFoundOrNotEligible();
 
 /** @author Mchango
  *  @notice This contract needs to be updated
@@ -756,10 +757,17 @@ contract Mchango {
         emit rotationEnded(_id);
     }
 
-    function penalize() public {
+    function penalize(
+        uint256 _id
+    ) internal {
         //todo: check if group state is rotation
+        Group storage group = idToGroup[_id];
+        require(group.currentState == State.rotation, "Group not in rotation state yet");
+        //require(block.timestamp > (group.timer + group.timeLimit));
         //todo: get the defaulters
+        address[] memory defaults = getDefaulters(_id);
         //todo: fire collateralAndDisciplineTrigger
+        collateralAndDisciplineTrigger(_id, defaults);
     }
 
     /**
