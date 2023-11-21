@@ -7,7 +7,7 @@ import auto from '../assets/auto.svg'
 const SmartCrypto = () => {
   return (
     <>
-      <div className='flex justify-center mt-[76px]'>
+      <div className='flex justify-center mt-[76px] mb-[150px] '>
         <div className='w-full'>
           <div className='text-[50px] font-extrabold leading-[55px] text-[#D9D9DB] w-[734px] mx-auto text-center leading-normal '>Smart Crypto Investing <br />and Community Empowerment</div>
           <div className=''>

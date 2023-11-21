@@ -1,5 +1,6 @@
 
 import GatewayLanding from '../components/GatewayLanding';
+import MasteryHub from '../components/MasteryHub';
 import Navbar from '../components/Navbar';
 import SmartCrypto from '../components/SmartCrypto';
 
@@ -13,6 +14,7 @@ const Landing = () => {
         <Navbar />
         <GatewayLanding />
         <SmartCrypto />
+        <MasteryHub />
         </div>
       </div>
 
