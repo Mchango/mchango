@@ -13,22 +13,22 @@ const SmartCrypto = () => {
           <div className=''>
             <div className='grid grid-cols-3 justify-between'>
               <div className='smartbg py-[32px] px-[10px]'>
-                <Image src={invest} alt='icon' className='' />
+                <Image src={invest} alt='icon' className='w-[387px] mx-auto ' />
                 <div className='text-[#F1F1F1] text-[30px] font-bold leading-[33px] text-center mx-auto mt-[43px] mb-[23px] '>Real-Time Investment Insights</div>
                 <div className='text-[#fff] text-[22px] leading-[34.62px] text-center mx-auto '>Stay informed with live investment data. Mchango_ provides real-time insights, alerts, and analysis for informed decision-making in the cryptocurrency market.</div>
                 <div className='text-[20px] font-bold text-[#418FAA] mx-auto text-center mt-[45px] cursor-pointer underline underline-offset-4 hover:text-[#fff] '>Get Started</div>
               </div>
               <div className='smartbg py-[32px] px-[10px]'>
-                <Image src={collab} alt='icon' className='' />
-                <div className='text-[#F1F1F1] text-[30px] font-bold leading-[33px] text-center mx-auto mt-[16.6px] mb-[23px] '>Community Collaboration for Profitability</div>
+                <Image src={collab} alt='icon' className='w-[359px] mx-auto ' />
+                <div className='text-[#F1F1F1] text-[30px] font-bold leading-[33px] text-center mx-auto mt-[32.6px] mb-[23px] '>Community Collaboration for Profitability</div>
                 <div className='text-[#fff] text-[22px] leading-[34.62px] text-center mx-auto '>Boost profits through community collaboration. Join forces, share wisdom, manage risks, and achieve greater profitability in the volatile market.</div>
-                <div className='text-[20px] font-bold text-[#418FAA] mx-auto text-center mt-[45px] cursor-pointer underline underline-offset-4 hover:text-[#fff] '>Get Started</div>
+                <div className='text-[20px] font-bold text-[#418FAA] mx-auto text-center mt-[76px] cursor-pointer underline underline-offset-4 hover:text-[#fff] '>Get Started</div>
               </div>
               <div className='smartbg py-[32px] px-[10px]'>
-                <Image src={auto} alt='icon' className='' />
+                <Image src={auto} alt='icon' className='w-[363px] mx-auto ' />
                 <div className='text-[#F1F1F1] text-[30px] font-bold leading-[33px] w-[373px] mx-auto mt-[28px] mb-[55px]' >Automated Group Savings</div>
                 <div className='text-[#fff] text-[22px] leading-[34.62px] text-center mx-auto '>Join or create savings groups effortlessly. Mchango_ automates contributions, ensuring disciplined group savings for common financial goals.</div>
-                <div className='text-[20px] font-bold text-[#418FAA] mx-auto text-center mt-[45px] cursor-pointer underline underline-offset-4 hover:text-[#fff] '>Get Started</div>
+                <div className='text-[20px] font-bold text-[#418FAA] mx-auto text-center mt-[76px] cursor-pointer underline underline-offset-4 hover:text-[#fff] '>Get Started</div>
               </div>
             </div>
 
