@@ -2,7 +2,11 @@ import React from 'react'
 
 const MasteryHub = () => {
   return (
-    <div>MasteryHub</div>
+    <>
+    <div className='flex justify-center'>
+
+    </div>
+    </>
   )
 }
 

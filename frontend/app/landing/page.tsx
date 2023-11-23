@@ -2,6 +2,7 @@
 import GatewayLanding from '../components/GatewayLanding';
 import MasteryHub from '../components/MasteryHub';
 import Navbar from '../components/Navbar';
+import Plan from '../components/Plan';
 import SmartCrypto from '../components/SmartCrypto';
 
 const Landing = () => {
@@ -15,6 +16,7 @@ const Landing = () => {
         <GatewayLanding />
         <SmartCrypto />
         <MasteryHub />
+        <Plan />
         </div>
       </div>
 
