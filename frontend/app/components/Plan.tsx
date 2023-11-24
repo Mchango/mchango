@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import React from 'react';
 import basic from '../assets/basic.svg';
-import Check from '../assets/Check.svg'
+import Check from '../assets/Check.svg';
+import premium from '../assets/premium.svg'
 
 const Plan = () => {
   return (
@@ -33,6 +34,16 @@ const Plan = () => {
                         Get Started
                         </button>
                     </div>
+                    <div className='smartbg px-[40px] pt-[40px] '>
+                        <div className='flex mb-[20px]'>
+                            <Image src={premium} alt='premium' className=''/>
+                            <button className='text-[#FFFFFF] border-[1px] border-[#fff] bg-[rgba(255, 255, 255, 0.08)] rounded-[8px] py-[5px] px-[10px] text-[18px] font-light w-[103px] h-[38px] my-auto ml-[20px] leading-normal '>Best offer</button>
+                        </div>
+                        <div className='text-[#00FFFF] text-[44px] font-medium tracking-[-1px] leading-normal '>Premium Plan</div>
+                        <div className='text-[24px] leading-[32px] text-[#fff] w-[95%] mt-[14px] '>Elevate savings with the Premium Plan's advanced features and exclusive benefits, designed for accelerated financial success. </div>
+                        <hr className='w-[90%] my-[28px] bg-[#E7EBFF] '/>
+                    </div>
+
                 </div>
             </div>
         
