@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import React from 'react';
-import basic from '../assets/basic.svg'
+import basic from '../assets/basic.svg';
+import Check from '../assets/Check.svg'
 
 const Plan = () => {
   return (
@@ -16,12 +17,22 @@ const Plan = () => {
                         <div className='text-[#00FFFF] text-[44px] font-medium tracking-[-1px] leading-normal '>Basic Plan</div>
                         <div className='text-[24px] leading-[32px] text-[#fff] w-[95%] mt-[14px] '>The Basic Plan is ideal for users new to collective savings. Start your journey towards financial goals with group savings power.</div>
                         <hr className='w-[90%] my-[28px] bg-[#E7EBFF] '/>
-                        <div>
-                            
+                        <div className='flex'>
+                            <Image src={Check} alt='checks' className='mr-[16px]' />
+                            <div className='text-[24px] leading-[40px] text-[#0ff] '>Commission Fee: 3%</div>
                         </div>
-
+                        <div className='flex mt-[12px] '>
+                            <Image src={Check} alt='checks' className='mr-[16px]' />
+                            <div className='text-[24px] leading-[40px] text-[#0ff] w-[80%] '>No of subscriibers: 10 max</div>
+                        </div>
+                        <div className='flex mt-[12px] '>
+                            <Image src={Check} alt='checks' className='mr-[16px]' />
+                            <div className='text-[24px] leading-[40px] text-[#0ff] w-[80%] '>Subscription Payment: 0 ETH</div>
+                        </div>
+                        <button className='text-[#00FFFF] rounded-[12px] py-[22px] px-[44px] border-[1px] border-[#6D6D6D] mt-[44px] mx-auto flex justify-center mb-[40px] '>
+                        Get Started
+                        </button>
                     </div>
-
                 </div>
             </div>
         
