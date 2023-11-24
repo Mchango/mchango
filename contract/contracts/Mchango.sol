@@ -6,9 +6,6 @@ import "./Helper.sol";
 error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
 
-/** @author Mchango
- *  @notice This contract needs to be updated
- */
 contract Mchango {
     /**
      * todo: implement the penalize function
@@ -341,8 +338,7 @@ contract Mchango {
 
         //? Count the number of defaulters
         for (uint256 i = 0; i < group.groupMembers.length; i++) {
-            address member = group.groupMembers[i];
-            if (!group.participants[member].hasDonated) {
+            if (!group.participants[group.groupMembers[i]].hasDonated) {
                 defaulterCount++;
             }
         }
@@ -429,10 +425,12 @@ contract Mchango {
 
     //? this function is triggered when the disburse function is called
     //? this ensures contributions can be tracked and rotations can be managed till all members hasReceived state is true;
-    function resetMembersDonationState() internal {
-        //todo: ensure group state is contribution
-        //todo: access the group
-        //todo: fetch members and reset their hasDonatedState to false and timestamp to 0
+    function resetMembersDonationState(uint _id) internal {
+        Group storage group = idToGroup[_id];
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            group.participants[group.eligibleMembers[i]].hasDonated = false;
+            group.participants[group.eligibleMembers[i]].timeStamp = 0;
+        }
     }
 
     /***
@@ -566,10 +564,6 @@ contract Mchango {
         emit joinedGroup(_memberAddress, group.name, block.timestamp);
     }
 
-    /**
-     * @dev //?This function is responsible for setting the group donation amount
-     */
-    //! This function is called when the group state is in contribution
     function defineContributionValue(
         uint256 _id
     )
@@ -596,8 +590,6 @@ contract Mchango {
         uint256 _id
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
-
-        //? remives address from group members
         Helper.removeAddress(_groupMemberAddress, group.groupMembers);
 
         //? This removes an address while maintaining the order of the array
@@ -611,10 +603,6 @@ contract Mchango {
         emit memberKicked(group.name, _groupMemberAddress);
     }
 
-    /**
-     * @dev //? This function has been updated and ready for testing
-     *
-     */
     function contribute(
         uint256 _id
     )
@@ -651,6 +639,7 @@ contract Mchango {
             participant.timeStamp = block.timestamp;
             participant.isEligible = true;
             participant.reputation = increaseReputation(msg.sender);
+            participant.hasDonated = true;
 
             //? Add the sender to the eligible members list
             group.eligibleMembers.push(msg.sender);
@@ -706,7 +695,8 @@ contract Mchango {
      * ? The purpose of this function is to set the enum state to rotation
      */
     function startRotation(
-        uint256 _id
+        uint256 _id,
+        uint256 _timeLimit
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
         Group storage group = returnGroup(_id);
         if (group.currentState == State.rotation) {
@@ -719,6 +709,8 @@ contract Mchango {
         );
 
         group.currentState = State.rotation;
+        group.timeLimit = _timeLimit;
+        group.timer = block.timestamp;
 
         emit inRotationPhase(_id);
     }
@@ -743,7 +735,12 @@ contract Mchango {
         }
 
         //? Clear the eligibleMembers array
-        delete group.eligibleMembers;
+        for (uint i = 0; i < group.eligibleMembers.length; i++) {
+            group.eligibleMembers[i] = group.eligibleMembers[
+                group.eligibleMembers.length - 1
+            ];
+            group.eligibleMembers.pop();
+        }
 
         //? require all the funds in rotation has been disbursed
         require(
@@ -756,10 +753,17 @@ contract Mchango {
         emit rotationEnded(_id);
     }
 
-    function penalize() public {
-        //todo: check if group state is rotation
-        //todo: get the defaulters
-        //todo: fire collateralAndDisciplineTrigger
+    function penalize(uint256 _id) internal {
+        Group storage group = idToGroup[_id];
+        require(
+            group.currentState == State.rotation,
+            "Group not in rotation state yet"
+        );
+        require(block.timestamp > (group.timer + group.timeLimit));
+
+        address[] memory defaults = getDefaulters(_id);
+
+        collateralAndDisciplineTrigger(_id, defaults);
     }
 
     /**
@@ -775,6 +779,9 @@ contract Mchango {
             "Can only call disburse in rotation state"
         );
 
+        //? penalize defaulters
+        penalize(_id);
+
         //? get the eligible member
         address eligibleParticipant = getEligibleMember(_id);
 
@@ -782,7 +789,7 @@ contract Mchango {
         Participant memory participant = group.participants[
             eligibleParticipant
         ];
-
+        require(participant.hasDonated, "this participant hasn't contributed");
         //? update the amountCollectes state
         uint256 amount = getNewBalance(_id);
         participant.amountCollected = amount;
@@ -809,7 +816,8 @@ contract Mchango {
         }
         group.eligibleMembers.push(participant.participantAddress);
 
-        //todo: reset members has donated state to false
+        resetMembersDonationState(_id);
+        group.timer = block.timestamp;
 
         emit hasReceivedFunds(participant.participantAddress, amount);
     }
