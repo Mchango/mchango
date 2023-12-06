@@ -56,3 +56,10 @@ background-clip: text;
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 }
+.signupbtn {
+  border-radius: 15px;
+background: linear-gradient(180deg, #008080 0%, #7B5FBF 100%);
+}
+.signupbtn:hover {
+  background: #008080;
+}
