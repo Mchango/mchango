@@ -2,6 +2,7 @@ import Image from 'next/image'
 import React from 'react';
 import line from '../assets/line.svg';
 import logoo from '../assets/logoo.svg'
+import SignupForm from '../components/SignupForm';
 
 const SignUp = () => {
   return (
@@ -21,6 +22,7 @@ const SignUp = () => {
                   <div className='text-[52px] font-bold text-[#FFFFFF] ml-[15px] my-auto '>Mchango_</div>
                 </div>
                 <div className='signupgate text-[40px] font-bold mb-[21px] '>Gateway to Smart Savings and Contributions</div>
+                <SignupForm />
                 </div>
               </div>
             </div>
