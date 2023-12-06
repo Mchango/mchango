@@ -50,3 +50,9 @@ background-clip: text;
   border-radius: 40px;
 background: linear-gradient(180deg, #107B88 0%, #6A63B6 100%);
 }
+.signupgate {
+  background: linear-gradient(91deg, #008080 26.57%, #C5AEFF 74.29%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
