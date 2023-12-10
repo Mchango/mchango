@@ -16,10 +16,12 @@ const config: Config = {
 
       fontFamily: {
         satoshi: ['Satoshi', 'sans-serif'],
+        nunito: ['Nunito', 'sans-serif']
+
       },
 
       colors: {
-        primary: '#00D3D3',
+        primary: '#09090A',
         secondary: '#1F1F22',
         text: '#EFEFEF',
         accent: '#7615BA',
