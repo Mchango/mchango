@@ -7,12 +7,6 @@ error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
 
 contract Mchango {
-    /**
-     * todo: implement the penalize function
-     * todo: enhance the disburse function to set participant has donated state to true
-     * todo: implement automatic deduction
-     */
-
     //!Project Events
     event hasCreatedGroup(address indexed _address, string _description);
     event hasDonated(address indexed _participant, uint256 _amount);
@@ -368,7 +362,7 @@ contract Mchango {
         for (uint256 i = 0; i < _defaulters.length; i++) {
             uint256 collateralAmount = group.collateralTracking[_defaulters[i]];
 
-            if (collateralAmount > group.contributionValue) {
+            if (collateralAmount >= group.contributionValue) {
                 address defaulterToMove = _defaulters[i];
                 handleExcessCollateral(defaulterToMove, _id);
             } else if (collateralAmount < group.contributionValue) {
@@ -385,7 +379,7 @@ contract Mchango {
         Group storage group = returnGroup(_id);
 
         //? Subtract contributionValue from collateralAmount
-        group.collateralTracking[_defaulter] - group.contributionValue;
+        group.collateralTracking[_defaulter] -= group.contributionValue;
         addressToMember[_defaulter].reputation -= 1;
 
         //? Find the index of defaulterToMove in eligibleMembers array
