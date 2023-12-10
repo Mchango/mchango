@@ -63,3 +63,7 @@ background: linear-gradient(180deg, #008080 0%, #7B5FBF 100%);
 .signupbtn:hover {
   background: #008080;
 }
+.rocket{
+  border-radius: 17.947px;
+background: linear-gradient(237deg, #0A6B80 19.39%, #2F2180 83.13%);
+}
