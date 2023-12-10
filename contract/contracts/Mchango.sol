@@ -2,6 +2,11 @@
 pragma solidity ^0.8.17;
 import "./Helper.sol";
 
+/**
+ * todo: create a function to add new member
+ * todo: refactor join group function
+ */
+
 /* Errors */
 error Mchango__GroupAlreadyInContributionState();
 error Mchango__GroupAlreadyInRotationState();
@@ -89,16 +94,16 @@ contract Mchango {
     }
 
     //!Project States
-    uint256 private counter = 0;
-    uint256 private memberCounter = 0;
+    uint256 private counter;
+    uint256 private memberCounter;
     uint256 public premiumFee;
     uint256 public exclusiveFee;
-    uint256[] public keys;
-    uint256[] public memberKeys;
+    uint256[] private keys;
+    uint256[] private memberKeys;
     Group[] public allGroups;
     address[] public admins;
     address private immutable Owner;
-    mapping(uint256 => Group) idToGroup;
+    mapping(uint256 => Group) public idToGroup;
     mapping(address => uint256[]) adminToGroup;
     mapping(address => bool) public isPremium;
     mapping(address => bool) public isExclusive;
@@ -163,7 +168,7 @@ contract Mchango {
     }
 
     modifier idCompliance(uint256 _id) {
-        require(_id > 0, "identifier can not be blank");
+        require(_id <= counter, "identifier can not be blank");
 
         _;
     }
@@ -244,6 +249,7 @@ contract Mchango {
         return isExclusive[_address];
     }
 
+    //! this function has been tested
     function returnGroup(uint256 _id) internal view returns (Group storage) {
         return idToGroup[_id];
     }
@@ -429,6 +435,7 @@ contract Mchango {
 
     /***
      * @dev //! These are external functions
+     * @dev This function has been tested and it works
      */
     //? this function creates a new group
     function createGroup(
@@ -440,14 +447,17 @@ contract Mchango {
         uint256 id = counter++;
         address admin = msg.sender;
 
+        uint256 newContributionTimeLimit = _contributionTimeLimit + 0 seconds;
+        uint256 definedCollateralValue = _collateralValue + 0 ether;
+
         Group storage newGroup = returnGroup(id);
         newGroup.id = id;
-        newGroup.collateral = _collateralValue;
+        newGroup.collateral = definedCollateralValue;
         newGroup.admin = admin;
         newGroup.name = _name;
         newGroup.description = Helper.stringToBytes32(_groupDescription);
         newGroup.balance = 0;
-        newGroup.timeLimit = _contributionTimeLimit;
+        newGroup.timeLimit = newContributionTimeLimit;
         newGroup.currentState = State.initialization;
 
         if (isSubscriberPremium(admin)) {
