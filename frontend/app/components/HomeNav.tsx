@@ -2,6 +2,7 @@ import Image from 'next/image'
 import React from 'react';
 import search from '../assets/search.svg'
 import NotificationBell from './NotificationBell';
+import LoggedUser from './LoggedUser';
 
 const HomeNav: React.FC = () => {
     return (
@@ -18,8 +19,9 @@ const HomeNav: React.FC = () => {
                                 placeholder="Search..."
                             />
                         </div>
-                        <div className='flex'>
+                        <div className='flex mr-[45px] '>
                             <NotificationBell notificationCount={6}  />
+                            <LoggedUser />
 
                         </div>
 
