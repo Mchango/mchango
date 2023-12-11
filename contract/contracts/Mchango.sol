@@ -13,11 +13,13 @@ error Mchango__GroupAlreadyInRotationState();
 
 contract Mchango {
     //!Project Events
+    event memberCreated(address indexed member);
     event hasCreatedGroup(address indexed _address, string _description);
     event hasDonated(address indexed _participant, uint256 _amount);
     event hasReceivedFunds(address indexed _participant, uint256 _amount);
     event memberKicked(string _name, address indexed _memberAddress);
     event participantVerdicit(bool _isBanned, address indexed _participant);
+    event subscriptionExpired(address indexed _subscriber);
     event joinedGroup(
         address indexed _participant,
         string _groupName,
@@ -106,7 +108,6 @@ contract Mchango {
     mapping(uint256 => Group) public idToGroup;
     mapping(address => uint256[]) adminToGroup;
     mapping(address => bool) public isPremium;
-    mapping(address => bool) public isExclusive;
     mapping(address => Subscriber) public addressToSubscriber;
     mapping(address => Member) public addressToMember;
     mapping(address => bool) private isMember;
@@ -114,13 +115,11 @@ contract Mchango {
     /**
      * ! Project constructor
      * @param _premiumFee this sets the fee for a premium subscription
-     * @param _exclusiveFee this sets the fee for a exclusive subscription
      */
-    constructor(uint256 _premiumFee, uint256 _exclusiveFee) {
+    constructor(uint256 _premiumFee) {
         premiumFee = _premiumFee;
-        exclusiveFee = _exclusiveFee;
         Owner = msg.sender;
-        isExclusive[msg.sender] = true;
+        isPremium[msg.sender] = true;
     }
 
     //!Project Modifiers
@@ -188,6 +187,10 @@ contract Mchango {
         payable
         subscriptionCompliance(premiumFee)
     {
+        require(
+            msg.value == premiumFee,
+            "Insufficient amount for premium service"
+        );
         address subscriberAddress = msg.sender;
         Tier subscriberPlan = Tier.premium;
 
@@ -207,29 +210,19 @@ contract Mchango {
         emit hasSubscribed(subscriberAddress, subscriberPlan, amount);
     }
 
-    //? This function allows users to pay for an exclusive subscription
-    function subscribeExclusive()
-        external
-        payable
-        subscriptionCompliance(exclusiveFee)
-    {
-        address subscriberAddress = msg.sender;
-        Tier subscriberPlan = Tier.exclusive;
+    function unSubscribeMember(address _subscriberAddress) external {
+        require(isPremium[_subscriberAddress], "Not a premium subscriber");
+        uint256 startTime = addressToSubscriber[_subscriberAddress].timeStamp;
+        require(
+            startTime + 30 days <= block.timestamp,
+            "30 days has not elapsed"
+        );
 
-        Subscriber memory subscriber = Subscriber({
-            subscriberAddress: subscriberAddress,
-            subscriptionTier: subscriberPlan,
-            timeStamp: block.timestamp
-        });
+        isPremium[_subscriberAddress] = false;
+        addressToSubscriber[_subscriberAddress].subscriptionTier = Tier.basic;
+        addressToSubscriber[_subscriberAddress].timeStamp = block.timestamp;
 
-        uint256 amount = msg.value;
-        (bool success, ) = payable(address(this)).call{value: amount}("");
-        require(success, "This transaction failed");
-
-        isExclusive[subscriberAddress] = true;
-        addressToSubscriber[subscriberAddress] = subscriber;
-
-        emit hasSubscribed(subscriberAddress, subscriberPlan, amount);
+        emit subscriptionExpired(_subscriberAddress);
     }
 
     /**
@@ -241,12 +234,6 @@ contract Mchango {
         address _address
     ) internal view returns (bool) {
         return isPremium[_address];
-    }
-
-    function isSubscriberExclusive(
-        address _address
-    ) internal view returns (bool) {
-        return isExclusive[_address];
     }
 
     //! this function has been tested
@@ -273,13 +260,12 @@ contract Mchango {
     function getMaxMembers(
         address _memberAddress
     ) internal view returns (uint256) {
-        if (isSubscriberPremium(_memberAddress)) {
-            return 20;
-        } else if (isSubscriberExclusive(_memberAddress)) {
-            return 50;
-        } else {
-            return 10;
+        uint freePlanMemberLimit;
+        if (!isSubscriberPremium(_memberAddress)) {
+            freePlanMemberLimit = 10;
         }
+
+        return freePlanMemberLimit;
     }
 
     function checkIsEligibleMember(uint256 _id) internal view returns (bool) {
@@ -319,6 +305,26 @@ contract Mchango {
             (balanceAfterGasEstimate / 100);
 
         return balanceToBeSent;
+    }
+
+    function defineContributionValue(
+        uint256 _id
+    )
+        internal
+        view
+        idCompliance(_id)
+        onlyAdmin(_id)
+        groupExists(_id)
+        returns (uint256)
+    {
+        Group storage group = returnGroup(_id);
+        uint256 sumCollateral = 0;
+        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
+            sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
+        }
+        uint256 contributionValue = sumCollateral /
+            group.eligibleMembers.length;
+        return contributionValue;
     }
 
     /**
@@ -378,6 +384,19 @@ contract Mchango {
         }
     }
 
+    function penalize(uint256 _id) internal {
+        Group storage group = idToGroup[_id];
+        require(
+            group.currentState == State.rotation,
+            "Group not in rotation state yet"
+        );
+        require(block.timestamp > (group.timer + group.timeLimit));
+
+        address[] memory defaults = getDefaulters(_id);
+
+        collateralAndDisciplineTrigger(_id, defaults);
+    }
+
     /**
      * @dev this function uses the shift method of array removal, it preserves the order of the array but is less gas eefficient
      */
@@ -433,8 +452,27 @@ contract Mchango {
         }
     }
 
+    //! EXTERNAL FUNCTIONS
+
+    function createMember(string memory _name) external {
+        require(!isMember[msg.sender], "already a member");
+        uint member_id = memberCounter++;
+        Member memory newMember = Member({
+            id: member_id,
+            name: _name,
+            memberAddress: msg.sender,
+            amountDonated: 0,
+            amountCollected: 0,
+            reputation: 1
+        });
+        isMember[msg.sender] = true;
+        addressToMember[msg.sender] = newMember;
+        memberKeys.push(member_id);
+
+        emit memberCreated(msg.sender);
+    }
+
     /***
-     * @dev //! These are external functions
      * @dev This function has been tested and it works
      */
     //? this function creates a new group
@@ -460,11 +498,7 @@ contract Mchango {
         newGroup.timeLimit = newContributionTimeLimit;
         newGroup.currentState = State.initialization;
 
-        if (isSubscriberPremium(admin)) {
-            newGroup.groupMembers = new address[](20);
-        } else if (isSubscriberExclusive(admin)) {
-            newGroup.groupMembers = new address[](50);
-        } else {
+        if (!isSubscriberPremium(admin)) {
             newGroup.groupMembers = new address[](10);
         }
 
@@ -500,8 +534,7 @@ contract Mchango {
      *
      */
     function joinGroup(
-        uint256 _id,
-        string memory _name
+        uint256 _id
     )
         external
         payable
@@ -509,9 +542,16 @@ contract Mchango {
         groupExists(_id)
         collateralCompliance(msg.value, _id)
     {
+        require(isMember[msg.sender], "Not a member");
+        require(
+            addressToMember[msg.sender].reputation != 0,
+            "Not enough reputation point"
+        );
+
         Group storage group = returnGroup(_id);
         address _memberAddress = msg.sender;
 
+        require(msg.value >= group.collateral, "Not enough collateral value");
         require(
             group.currentState == State.initialization,
             "Cannot add members after contribution or collection has started"
@@ -522,70 +562,25 @@ contract Mchango {
             group.groupMembers.length < getMaxMembers(_memberAddress),
             "Maximum number of members reached"
         );
+        require(
+            group.collateralTracking[_memberAddress] == 0,
+            "Already a member of this group"
+        );
 
-        //? Check if the sender is already a member
-        if (!isMember[_memberAddress]) {
-            //? Make payment
-            makePayment(msg.value);
-            group.collateralTracking[_memberAddress] = msg.value;
+        makePayment(msg.value);
+        group.collateralTracking[_memberAddress] = msg.value;
 
-            uint256 memberId = memberCounter++;
-
-            //? Create a new participant
-            Participant storage participant = group.participants[
-                _memberAddress
-            ];
-            participant.name = _name;
-            participant.participantAddress = _memberAddress;
-            participant.hasDonated = false;
-            participant.reputation = 1;
-
-            memberKeys.push(memberId);
-
-            // Create a new member
-            Member storage member = addressToMember[_memberAddress];
-            member.id = memberId;
-            member.name = _name;
-            member.memberAddress = _memberAddress;
-            member.reputation = 1;
-
-            //? Set the member status to true
-            isMember[_memberAddress] = true;
-        } else {
-            //? If the sender is already a member, update their reputation
-            require(
-                addressToMember[_memberAddress].reputation > 0,
-                "Not enough reputation to join group"
-            );
-            group.participants[_memberAddress].reputation = addressToMember[
-                _memberAddress
-            ].reputation;
-        }
+        //? Create a new participant
+        Participant storage participant = group.participants[_memberAddress];
+        participant.name = addressToMember[msg.sender].name;
+        participant.participantAddress = _memberAddress;
+        participant.hasDonated = false;
+        participant.reputation = 1;
 
         //? Add the sender to the group's members list
         group.groupMembers.push(_memberAddress);
 
         emit joinedGroup(_memberAddress, group.name, block.timestamp);
-    }
-
-    function defineContributionValue(
-        uint256 _id
-    )
-        internal
-        view
-        idCompliance(_id)
-        onlyAdmin(_id)
-        groupExists(_id)
-        returns (uint256)
-    {
-        Group storage group = returnGroup(_id);
-        uint256 sumCollateral = 0;
-        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
-            sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
-        }
-        uint256 contributionValue = sumCollateral /
-            group.eligibleMembers.length;
-        return contributionValue;
     }
 
     //! This function requires an update
@@ -757,19 +752,6 @@ contract Mchango {
         emit rotationEnded(_id);
     }
 
-    function penalize(uint256 _id) internal {
-        Group storage group = idToGroup[_id];
-        require(
-            group.currentState == State.rotation,
-            "Group not in rotation state yet"
-        );
-        require(block.timestamp > (group.timer + group.timeLimit));
-
-        address[] memory defaults = getDefaulters(_id);
-
-        collateralAndDisciplineTrigger(_id, defaults);
-    }
-
     /**
      * @notice //! This function releases the accumlated funds for that round
      * @dev //? this function is extremely sensitive and any change should be reported
@@ -828,10 +810,6 @@ contract Mchango {
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
         premiumFee = _fee;
-    }
-
-    function setExclusiveFee(uint256 _fee) external onlyOwner {
-        exclusiveFee = _fee;
     }
 
     /**
