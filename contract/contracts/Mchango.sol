@@ -181,7 +181,7 @@ contract Mchango {
         _;
     }
 
-    //? This function allows users to subscribe for a premium service
+    //! This function has been tested
     function subscribePremium()
         external
         payable
@@ -225,11 +225,12 @@ contract Mchango {
         emit subscriptionExpired(_subscriberAddress);
     }
 
-    /**
+    /** //!Internal Functions
      * @dev these are helper functions that are used internally by major functions
      *
      */
-    //!Internal Functions
+
+    //! This function has been tested
     function isSubscriberPremium(
         address _address
     ) internal view returns (bool) {
@@ -454,6 +455,7 @@ contract Mchango {
 
     //! EXTERNAL FUNCTIONS
 
+    //! This function has been tested
     function createMember(string memory _name) external {
         require(!isMember[msg.sender], "already a member");
         uint member_id = memberCounter++;
@@ -473,7 +475,7 @@ contract Mchango {
     }
 
     /***
-     * @dev This function has been tested and it works
+     * @dev //!This function has been tested and it works
      */
     //? this function creates a new group
     function createGroup(
@@ -530,7 +532,7 @@ contract Mchango {
     }
 
     /**
-     * @dev this function has been updated and is ready for testing
+     * @dev //? This function has been tested
      *
      */
     function joinGroup(
@@ -625,10 +627,7 @@ contract Mchango {
         bool isEligible = checkIsEligibleMember(_id);
 
         if (getGroupState(_id) == State.contribution) {
-            require(
-                isEligible,
-                "Only eligible members can contribute in the contribution state"
-            );
+            require(isEligible, "Only group members can contribute");
 
             makePayment(msg.value);
 
