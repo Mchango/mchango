@@ -210,21 +210,6 @@ contract Mchango {
         emit hasSubscribed(subscriberAddress, subscriberPlan, amount);
     }
 
-    function unSubscribeMember(address _subscriberAddress) external {
-        require(isPremium[_subscriberAddress], "Not a premium subscriber");
-        uint256 startTime = addressToSubscriber[_subscriberAddress].timeStamp;
-        require(
-            startTime + 30 days <= block.timestamp,
-            "30 days has not elapsed"
-        );
-
-        isPremium[_subscriberAddress] = false;
-        addressToSubscriber[_subscriberAddress].subscriptionTier = Tier.basic;
-        addressToSubscriber[_subscriberAddress].timeStamp = block.timestamp;
-
-        emit subscriptionExpired(_subscriberAddress);
-    }
-
     /** //!Internal Functions
      * @dev these are helper functions that are used internally by major functions
      *
@@ -475,7 +460,7 @@ contract Mchango {
     }
 
     /***
-     * @dev //!This function has been tested and it works
+     * @dev //!This function has been tested
      */
     //? this function creates a new group
     function createGroup(
@@ -511,6 +496,7 @@ contract Mchango {
         emit hasCreatedGroup(admin, _groupDescription);
     }
 
+    //! This function has been tested
     function getGroupDetails(
         uint256 _id
     )
@@ -531,10 +517,7 @@ contract Mchango {
         );
     }
 
-    /**
-     * @dev //? This function has been tested
-     *
-     */
+    //! This function has been tested
     function joinGroup(
         uint256 _id
     )
@@ -583,6 +566,22 @@ contract Mchango {
         group.groupMembers.push(_memberAddress);
 
         emit joinedGroup(_memberAddress, group.name, block.timestamp);
+    }
+
+    // todo: this function is pending testing
+    function unSubscribeMember(address _subscriberAddress) external {
+        require(isPremium[_subscriberAddress], "Not a premium subscriber");
+        uint256 startTime = addressToSubscriber[_subscriberAddress].timeStamp;
+        require(
+            startTime + 30 days <= block.timestamp,
+            "30 days has not elapsed"
+        );
+
+        isPremium[_subscriberAddress] = false;
+        addressToSubscriber[_subscriberAddress].subscriptionTier = Tier.basic;
+        addressToSubscriber[_subscriberAddress].timeStamp = block.timestamp;
+
+        emit subscriptionExpired(_subscriberAddress);
     }
 
     //! This function requires an update
@@ -672,6 +671,7 @@ contract Mchango {
     }
 
     /**
+     * todo: This function is pending testing
      * @notice //!this function requires an update
      * ? This purpose of this function is to set the state enum to contribution
      */
@@ -689,6 +689,7 @@ contract Mchango {
     }
 
     /**
+     * todo: this function is pending testing
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
@@ -714,6 +715,7 @@ contract Mchango {
     }
 
     /**
+     * todo: this function is pending testing
      * @dev //? this function ends the rotation period
      */
     function endRotation(
@@ -752,6 +754,7 @@ contract Mchango {
     }
 
     /**
+     * todo: this function is pending testing
      * @notice //! This function releases the accumlated funds for that round
      * @dev //? this function is extremely sensitive and any change should be reported
      */
@@ -813,6 +816,7 @@ contract Mchango {
 
     /**
      * @notice //! This function needs an update
+     * todo: this function is pending testing
      */
     function moderateParticipant(
         address _participant,
