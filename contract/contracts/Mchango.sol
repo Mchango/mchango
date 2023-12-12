@@ -568,7 +568,7 @@ contract Mchango {
         emit joinedGroup(_memberAddress, group.name, block.timestamp);
     }
 
-    // todo: this function is pending testing
+    //! This function has been tested
     function unSubscribeMember(address _subscriberAddress) external {
         require(isPremium[_subscriberAddress], "Not a premium subscriber");
         uint256 startTime = addressToSubscriber[_subscriberAddress].timeStamp;
@@ -603,6 +603,7 @@ contract Mchango {
         emit memberKicked(group.name, _groupMemberAddress);
     }
 
+    // todo: this func is pending testing
     function contribute(
         uint256 _id
     )
