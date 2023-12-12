@@ -1,6 +1,7 @@
 import React from 'react'
 import SideNav from '../components/SideNav'
 import HomeNav from '../components/HomeNav'
+import WalletInfo from '../components/WalletInfo'
 
 const Home = () => {
     return (
@@ -11,6 +12,7 @@ const Home = () => {
                         <SideNav />
                         <div className='w-full'>
                             <HomeNav />
+                            <WalletInfo />
                         </div>
                     </div>
                 </div>
