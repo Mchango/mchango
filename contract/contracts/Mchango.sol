@@ -293,6 +293,7 @@ contract Mchango {
         return balanceToBeSent;
     }
 
+    //todo: This function has been tested
     function defineContributionValue(
         uint256 _id
     )
@@ -304,13 +305,13 @@ contract Mchango {
         returns (uint256)
     {
         Group storage group = returnGroup(_id);
+        uint groupLength = group.groupMembers.length;
         uint256 sumCollateral = 0;
-        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
-            sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
+        for (uint256 i = 0; i < groupLength; i++) {
+            sumCollateral += group.collateralTracking[group.groupMembers[i]];
         }
-        uint256 contributionValue = sumCollateral /
-            group.eligibleMembers.length;
-        return contributionValue;
+        uint256 averageCollateral = sumCollateral / groupLength;
+        return averageCollateral;
     }
 
     /**
@@ -461,6 +462,7 @@ contract Mchango {
 
     /***
      * @dev //!This function has been tested
+     * @dev //? refactored to push admin to group members array
      */
     //? this function creates a new group
     function createGroup(
@@ -469,6 +471,7 @@ contract Mchango {
         uint256 _contributionTimeLimit,
         uint256 _collateralValue
     ) external {
+        require(isMember[msg.sender], "Only members can create groups");
         uint256 id = counter++;
         address admin = msg.sender;
 
@@ -484,6 +487,7 @@ contract Mchango {
         newGroup.balance = 0;
         newGroup.timeLimit = newContributionTimeLimit;
         newGroup.currentState = State.initialization;
+        newGroup.groupMembers.push(admin);
 
         if (!isSubscriberPremium(admin)) {
             newGroup.groupMembers = new address[](10);
@@ -691,6 +695,7 @@ contract Mchango {
 
     /**
      * todo: this function is pending testing
+     * todo: add some restrictions to rotation state, rotation state should only be callable if there are up to 3 members in the eligible Array
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
