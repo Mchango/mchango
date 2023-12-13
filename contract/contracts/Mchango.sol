@@ -5,6 +5,7 @@ import "./Helper.sol";
 /**
  * todo: create a function to add new member
  * todo: refactor join group function
+ *
  */
 
 /* Errors */
@@ -254,12 +255,13 @@ contract Mchango {
         return freePlanMemberLimit;
     }
 
-    function checkIsEligibleMember(uint256 _id) internal view returns (bool) {
-        Group storage group = idToGroup[_id];
+    function checkIsEligibleMember(
+        address[] storage _array
+    ) internal view returns (bool) {
         bool isEligible = false;
 
-        for (uint i = 0; i < group.eligibleMembers.length; i++) {
-            if (group.eligibleMembers[i] == msg.sender) {
+        for (uint i = 0; i < _array.length; i++) {
+            if (_array[i] == msg.sender) {
                 isEligible = true;
                 break;
             }
@@ -620,45 +622,52 @@ contract Mchango {
         returns (string memory)
     {
         Group storage group = returnGroup(_id);
+        Participant storage participant = group.participants[msg.sender];
 
         //? Check if the sender is an eligible member of the group
         require(
-            group.collateralTracking[msg.sender] == group.collateral,
+            group.collateralTracking[msg.sender] == group.collateral ||
+                msg.sender == group.admin,
             "Not a valid member of this group"
+        );
+        require(
+            !participant.hasDonated,
+            "You have made your contributions for this round"
         );
 
         //? Check if the sender is eligible to contribute
-        bool isEligible = checkIsEligibleMember(_id);
 
         if (getGroupState(_id) == State.contribution) {
-            require(isEligible, "Only group members can contribute");
+            bool isEligible = checkIsEligibleMember(group.groupMembers);
+            require(isEligible == true, "Only group members can contribute");
 
-            makePayment(msg.value);
+            group.balance += msg.value;
 
             //? Update participant's contribution and eligibility
-            Participant storage participant = group.participants[msg.sender];
             participant.amountDonated += msg.value;
             participant.timeStamp = block.timestamp;
             participant.isEligible = true;
             participant.reputation = increaseReputation(msg.sender);
             participant.hasDonated = true;
+            makePayment(msg.value);
 
             //? Add the sender to the eligible members list
             group.eligibleMembers.push(msg.sender);
         } else if (getGroupState(_id) == State.rotation) {
+            bool isEligible = checkIsEligibleMember(group.eligibleMembers);
             require(
-                isEligible,
+                isEligible == true,
                 "Only eligible members can contribute in the rotation state"
             );
 
-            makePayment(msg.value);
+            group.balance += msg.value;
 
             //? Update participant's contribution and reputation
-            Participant storage participant = group.participants[msg.sender];
             participant.amountDonated += msg.value;
             participant.timeStamp = block.timestamp;
             participant.hasDonated = true;
             participant.reputation = increaseReputation(msg.sender);
+            makePayment(msg.value);
 
             //? This ensures that contributers are arranged in order of their contribution
             uint indexToRemove = Helper.calculateIndexToRemove(
@@ -707,6 +716,10 @@ contract Mchango {
         if (group.currentState == State.rotation) {
             revert Mchango__GroupAlreadyInRotationState();
         }
+        require(
+            group.eligibleMembers.length > 2,
+            "2 is the minimum number of members required to rotate"
+        );
         require(
             group.currentState == State.contribution &&
                 group.currentState != State.initialization,
