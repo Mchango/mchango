@@ -1,9 +1,7 @@
 [
     {
         "address": "EQDHirLoAYIhplO...",
-        "balance": "1520,056"
-    },
-    {
+        "balance": "1520,056",
         "totalGroups": 5000,
         "grpsInRotation": 250,
         "grpsYetinRotation": 250,
