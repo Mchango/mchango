@@ -466,7 +466,6 @@ contract Mchango {
      * @dev //!This function has been tested
      * @dev //? refactored to push admin to group members array
      */
-    //? this function creates a new group
     function createGroup(
         string memory _groupDescription,
         string memory _name,
@@ -492,6 +491,10 @@ contract Mchango {
         newGroup.groupMembers.push(admin);
 
         if (!isSubscriberPremium(admin)) {
+            require(
+                adminToGroup[admin].length < 1,
+                "you can't create more than a group with a basic plan "
+            );
             newGroup.groupMembers = new address[](10);
         }
 
@@ -806,10 +809,7 @@ contract Mchango {
 
         //? update the has receivedFunds state
         participant.hasReceivedFunds = true;
-        (bool sent, ) = payable(participant.participantAddress).call{
-            value: amount
-        }("");
-        require(sent, "transaction failed");
+        makePayment(amount);
 
         //? push eligible member to the back of the array
         uint indexToRemove = Helper.calculateIndexToRemove(
