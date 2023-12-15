@@ -7,7 +7,7 @@
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@typechain/ethers-v6": "^0.4.0",
     "@typechain/hardhat": "^8.0.0",
-    "chai": "^4.2.0",
+    "chai": "^4.3.10",
     "ethers": "^6.4.0",
     "hardhat": "^2.18.3",
     "hardhat-gas-reporter": "^1.0.8",

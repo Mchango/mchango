@@ -5,6 +5,7 @@ import "./Helper.sol";
 /**
  * todo: create a function to add new member
  * todo: refactor join group function
+ *
  */
 
 /* Errors */
@@ -254,12 +255,13 @@ contract Mchango {
         return freePlanMemberLimit;
     }
 
-    function checkIsEligibleMember(uint256 _id) internal view returns (bool) {
-        Group storage group = idToGroup[_id];
+    function checkIsEligibleMember(
+        address[] storage _array
+    ) internal view returns (bool) {
         bool isEligible = false;
 
-        for (uint i = 0; i < group.eligibleMembers.length; i++) {
-            if (group.eligibleMembers[i] == msg.sender) {
+        for (uint i = 0; i < _array.length; i++) {
+            if (_array[i] == msg.sender) {
                 isEligible = true;
                 break;
             }
@@ -293,6 +295,7 @@ contract Mchango {
         return balanceToBeSent;
     }
 
+    //todo: This function has been tested
     function defineContributionValue(
         uint256 _id
     )
@@ -304,13 +307,13 @@ contract Mchango {
         returns (uint256)
     {
         Group storage group = returnGroup(_id);
+        uint groupLength = group.groupMembers.length;
         uint256 sumCollateral = 0;
-        for (uint256 i = 0; i < group.eligibleMembers.length; i++) {
-            sumCollateral += group.collateralTracking[group.eligibleMembers[i]];
+        for (uint256 i = 0; i < groupLength; i++) {
+            sumCollateral += group.collateralTracking[group.groupMembers[i]];
         }
-        uint256 contributionValue = sumCollateral /
-            group.eligibleMembers.length;
-        return contributionValue;
+        uint256 averageCollateral = sumCollateral / groupLength;
+        return averageCollateral;
     }
 
     /**
@@ -461,14 +464,15 @@ contract Mchango {
 
     /***
      * @dev //!This function has been tested
+     * @dev //? refactored to push admin to group members array
      */
-    //? this function creates a new group
     function createGroup(
         string memory _groupDescription,
         string memory _name,
         uint256 _contributionTimeLimit,
         uint256 _collateralValue
     ) external {
+        require(isMember[msg.sender], "Only members can create groups");
         uint256 id = counter++;
         address admin = msg.sender;
 
@@ -484,8 +488,13 @@ contract Mchango {
         newGroup.balance = 0;
         newGroup.timeLimit = newContributionTimeLimit;
         newGroup.currentState = State.initialization;
+        newGroup.groupMembers.push(admin);
 
         if (!isSubscriberPremium(admin)) {
+            require(
+                adminToGroup[admin].length < 1,
+                "you can't create more than a group with a basic plan "
+            );
             newGroup.groupMembers = new address[](10);
         }
 
@@ -568,7 +577,7 @@ contract Mchango {
         emit joinedGroup(_memberAddress, group.name, block.timestamp);
     }
 
-    // todo: this function is pending testing
+    //! This function has been tested
     function unSubscribeMember(address _subscriberAddress) external {
         require(isPremium[_subscriberAddress], "Not a premium subscriber");
         uint256 startTime = addressToSubscriber[_subscriberAddress].timeStamp;
@@ -603,6 +612,7 @@ contract Mchango {
         emit memberKicked(group.name, _groupMemberAddress);
     }
 
+    // todo: this func is pending testing
     function contribute(
         uint256 _id
     )
@@ -615,45 +625,52 @@ contract Mchango {
         returns (string memory)
     {
         Group storage group = returnGroup(_id);
+        Participant storage participant = group.participants[msg.sender];
 
         //? Check if the sender is an eligible member of the group
         require(
-            group.collateralTracking[msg.sender] == group.collateral,
+            group.collateralTracking[msg.sender] == group.collateral ||
+                msg.sender == group.admin,
             "Not a valid member of this group"
+        );
+        require(
+            !participant.hasDonated,
+            "You have made your contributions for this round"
         );
 
         //? Check if the sender is eligible to contribute
-        bool isEligible = checkIsEligibleMember(_id);
 
         if (getGroupState(_id) == State.contribution) {
-            require(isEligible, "Only group members can contribute");
+            bool isEligible = checkIsEligibleMember(group.groupMembers);
+            require(isEligible == true, "Only group members can contribute");
 
-            makePayment(msg.value);
+            group.balance += msg.value;
 
             //? Update participant's contribution and eligibility
-            Participant storage participant = group.participants[msg.sender];
             participant.amountDonated += msg.value;
             participant.timeStamp = block.timestamp;
             participant.isEligible = true;
             participant.reputation = increaseReputation(msg.sender);
             participant.hasDonated = true;
+            makePayment(msg.value);
 
             //? Add the sender to the eligible members list
             group.eligibleMembers.push(msg.sender);
         } else if (getGroupState(_id) == State.rotation) {
+            bool isEligible = checkIsEligibleMember(group.eligibleMembers);
             require(
-                isEligible,
+                isEligible == true,
                 "Only eligible members can contribute in the rotation state"
             );
 
-            makePayment(msg.value);
+            group.balance += msg.value;
 
             //? Update participant's contribution and reputation
-            Participant storage participant = group.participants[msg.sender];
             participant.amountDonated += msg.value;
             participant.timeStamp = block.timestamp;
             participant.hasDonated = true;
             participant.reputation = increaseReputation(msg.sender);
+            makePayment(msg.value);
 
             //? This ensures that contributers are arranged in order of their contribution
             uint indexToRemove = Helper.calculateIndexToRemove(
@@ -690,6 +707,7 @@ contract Mchango {
 
     /**
      * todo: this function is pending testing
+     * todo: add some restrictions to rotation state, rotation state should only be callable if there are up to 3 members in the eligible Array
      * @notice //! This function requires an update
      * ? The purpose of this function is to set the enum state to rotation
      */
@@ -701,6 +719,10 @@ contract Mchango {
         if (group.currentState == State.rotation) {
             revert Mchango__GroupAlreadyInRotationState();
         }
+        require(
+            group.eligibleMembers.length > 2,
+            "2 is the minimum number of members required to rotate"
+        );
         require(
             group.currentState == State.contribution &&
                 group.currentState != State.initialization,
@@ -787,10 +809,7 @@ contract Mchango {
 
         //? update the has receivedFunds state
         participant.hasReceivedFunds = true;
-        (bool sent, ) = payable(participant.participantAddress).call{
-            value: amount
-        }("");
-        require(sent, "transaction failed");
+        makePayment(amount);
 
         //? push eligible member to the back of the array
         uint indexToRemove = Helper.calculateIndexToRemove(
