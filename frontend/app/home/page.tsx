@@ -3,6 +3,7 @@ import SideNav from '../components/SideNav'
 import HomeNav from '../components/HomeNav'
 import WalletInfo from '../components/WalletInfo'
 import WalletNav from '../components/WalletNav'
+import GroupData from '../components/GroupData'
 
 const Home = () => {
     return (
@@ -15,6 +16,7 @@ const Home = () => {
                             <HomeNav />
                             <WalletInfo />
                             <WalletNav />
+                            <GroupData />
                         </div>
                     </div>
                 </div>
