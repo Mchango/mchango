@@ -4,6 +4,7 @@ import HomeNav from '../components/HomeNav'
 import WalletInfo from '../components/WalletInfo'
 import WalletNav from '../components/WalletNav'
 import GroupData from '../components/GroupData'
+import GroupEvents from '../components/GroupEvents'
 
 const Home = () => {
     return (
@@ -17,6 +18,7 @@ const Home = () => {
                             <WalletInfo />
                             <WalletNav />
                             <GroupData />
+                            <GroupEvents />
                         </div>
                     </div>
                 </div>
