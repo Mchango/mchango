@@ -5,6 +5,7 @@ import loadplay from '../assets/loadplay.svg'
 import Image from 'next/image';
 import tokensData from '../data.json'
 import GroupEvents from '../components/GroupEvents';
+import GroupNav from '../components/GroupNav';
 
 interface Token {
     
@@ -54,6 +55,7 @@ const Groups = () => {
                 </div>
               </div>
               <GroupEvents />
+              <GroupNav />
             </div>
              ))}
           </div>
