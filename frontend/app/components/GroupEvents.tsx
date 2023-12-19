@@ -15,7 +15,7 @@ const GroupEvents = () => {
     return (
         <>
             {tokens.map((token, index) => (
-                <div key={index} className='flex justify-center mb-[150px] '>
+                <div key={index} className='flex justify-center '>
                     <div className='w-full mt-[34px] '>
                         <div className='ml-[21px]'>
                             <div className='text-[32px] font-bold leading-[48px] text-[#fff] ml-[16px] '>Group Events</div>

@@ -13,7 +13,7 @@ const Home = () => {
                 <div className='w-full lg:max-w-[1400px]'>
                     <div className='flex'>
                         <SideNav />
-                        <div className='w-full'>
+                        <div className='w-full pb-[150px] '>
                             <HomeNav />
                             <WalletInfo />
                             <WalletNav />
