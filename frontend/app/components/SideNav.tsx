@@ -29,10 +29,12 @@ const SideNav = () => {
                             <Image src={chat} alt='chat' className='' />
                             <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Chat</div>
                         </div>
+                        <Link href='/groups'>
                         <div className='flex space-x-[24px] '>
                             <Image src={group} alt='group' className='' />
                             <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Groups</div>
                         </div>
+                        </Link>                        
                         <div className='flex space-x-[24px] '>
                             <Image src={upgrade} alt='upgrade' className='' />
                             <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Upgrade</div>
