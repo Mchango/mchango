@@ -53,7 +53,7 @@ const Groups = () => {
 
                 </div>
               </div>
-              {/* <GroupEvents /> */}
+              <GroupEvents />
             </div>
              ))}
           </div>
