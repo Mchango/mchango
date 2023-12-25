@@ -14,6 +14,10 @@
         "operation": "0xbbsjdjsnkdk has donated from group ‘adventure funds’",
         "id": "1.11.167382826",
         "dateTime": "21/02/2056, 12:45:57",
-        "block": "25,719,012"
+        "block": "25,719,012",
+        "nameofgrp": "Adventure Funds Group",
+        "grpdate": "Created on 20 July",
+        "grpether": "500 Ether",
+        "grpno": 500
     }
 ]
