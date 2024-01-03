@@ -1,5 +1,10 @@
 import React from 'react'
 import SideNav from '../components/SideNav'
+import HomeNav from '../components/HomeNav'
+import WalletInfo from '../components/WalletInfo'
+import WalletNav from '../components/WalletNav'
+import GroupData from '../components/GroupData'
+import GroupEvents from '../components/GroupEvents'
 
 const Home = () => {
     return (
@@ -8,13 +13,12 @@ const Home = () => {
                 <div className='w-full lg:max-w-[1400px]'>
                     <div className='flex'>
                         <SideNav />
-                        <div className='w-full'>kmcksmsecm
-                        <div>vjhhhjb</div>
-                        <div>
-                    jnbcejfejfnjefn
-                    <div>jndnjedjwndwjn</div>
-                    <div>jbdjwdj</div>
-                </div>
+                        <div className='w-full pb-[150px] '>
+                            <HomeNav />
+                            <WalletInfo />
+                            <WalletNav />
+                            <GroupData />
+                            <GroupEvents />
                         </div>
                     </div>
                 </div>
