@@ -7,6 +7,7 @@ import group from '../assets/group.svg';
 import upgrade from '../assets/upgrade.svg';
 import profile from '../assets/profile.svg';
 import rocket from '../assets/rocket.svg'
+import Link from 'next/link';
 
 const SideNav = () => {
     return (
@@ -18,25 +19,29 @@ const SideNav = () => {
                         <div className='text-[25px] font-bold text-[#fff] ml-[9px] ' >Mchango_</div>
                     </div>
                     <div className='grid grid-cols-1 space-y-[53px] '>
+                        <Link href='/home'>
                         <div className='flex space-x-[24px] '>
                             <Image src={home} alt='home' className='' />
-                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] '>Home</div>
+                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Home</div>
                         </div>
+                        </Link>
                         <div className='flex space-x-[24px] '>
                             <Image src={chat} alt='chat' className='' />
-                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] '>Chat</div>
+                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Chat</div>
                         </div>
+                        <Link href='/groups'>
                         <div className='flex space-x-[24px] '>
                             <Image src={group} alt='group' className='' />
-                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] '>Groups</div>
+                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Groups</div>
                         </div>
+                        </Link>                        
                         <div className='flex space-x-[24px] '>
                             <Image src={upgrade} alt='upgrade' className='' />
-                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] '>Upgrade</div>
+                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Upgrade</div>
                         </div>
                         <div className='flex space-x-[24px] '>
                             <Image src={profile} alt='profile' className='' />
-                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] '>Profile</div>
+                            <div className='text-[20px] leading-[28px] text-[#EFEFEF] cursor-pointer hover:text-[#006565] '>Profile</div>
                         </div>
                     </div>
                     <div className='relative mt-[46px] '>
