@@ -73,3 +73,14 @@ box-shadow: 0px 18px 54px 0px rgba(0, 0, 0, 0.02);
 .inp {
   box-shadow: 0px 1px 7px 0px rgba(0, 0, 0, 0.09); 
 }
+.grpcard1 {
+  border-radius: 16px;
+  background: linear-gradient(66deg, #008080 0%, #400080 84.01%);
+}
+.grpcard2 {
+  background: linear-gradient(66deg, #008080 0%, #400080 84.01%);
+}
+.grpbtnn{
+  border-radius: 24px;
+background: linear-gradient(182deg, #0FF 1.66%, #A87BFF 144.64%);
+}

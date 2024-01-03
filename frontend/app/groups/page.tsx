@@ -6,6 +6,7 @@ import Image from 'next/image';
 import tokensData from '../data.json'
 import GroupEvents from '../components/GroupEvents';
 import GroupNav from '../components/GroupNav';
+import GroupLists from '../components/GroupLists';
 
 interface Token {
     
@@ -56,6 +57,7 @@ const Groups = () => {
               </div>
               <GroupEvents />
               <GroupNav />
+              <GroupLists />
             </div>
              ))}
           </div>
