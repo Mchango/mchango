@@ -25,16 +25,26 @@ const CreateGroup = () => {
                     </div>
                     <div className='flex flex-col mb-[25px]'>
                         <label className='text-[16px] leading-[16px] tracking-[0.4px] text-[#FFFFFF] '>Collateral Value</label>
-                        <input className='mt-[17px] opacity-[0.8] rounded-[20px] text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#000000] pl-[34px] py-[23px] w-[507px] outline outline-none border-[1px] border-[#F0F0F0] bg-[#021d1d] ' placeholder='Collateral Value'/>
+                        <div className=' w-[507px] px-[34px] mt-[17px] opacity-[0.8] py-[23px] outline outline-none border-[1px] border-[#F0F0F0] bg-[#021d1d] rounded-[20px]  '>
+                        <select id='collateral'  className='w-full opacity-[0.8]  text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#fff] border-none border-none bg-[#021d1d] ' placeholder='Collateral Value'>
+                            <option className='opacity-[0.8] rounded-[20px] text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#fff] '>Collateral Value</option>
+
+                        </select>
+                        </div>
                     </div>
                     <div className='flex flex-col mb-[25px]'>
                         <label className='text-[16px] leading-[16px] tracking-[0.4px] text-[#FFFFFF] '>Plan Frequency</label>
-                        <input className='mt-[17px] opacity-[0.8] rounded-[20px] text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#000000] pl-[34px] py-[23px] w-[507px] outline outline-none border-[1px] border-[#F0F0F0] bg-[#021d1d] ' placeholder='Name'/>
+                        <div className=' w-[507px] px-[34px] mt-[17px] opacity-[0.8] py-[23px] outline outline-none border-[1px] border-[#F0F0F0] bg-[#021d1d] rounded-[20px]  '>
+                        <select id='collateral'  className='w-full opacity-[0.8]  text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#fff] border-none border-none bg-[#021d1d] ' placeholder='Collateral Value'>
+                            <option className='opacity-[0.8] rounded-[20px] text-[15px] font-semibold tracking-[0.1px] leading-[24px] text-[#fff] '>Choose the time frame for contribution</option>
+
+                        </select>
+                        </div>
                     </div>
                     <div className='flex items-center'>
                         <label htmlFor="dropzone-file" className='flex w-[197px] cursor-pointer hover:bg-bray-800 flex-col items-center justify-center h-[168px] border-[#fff] border-[1px] rounded-[20px] '>
                             <div>
-                                <Image src={file} alt='file' className='mx-auto' />
+                                <Image src={file} alt='file' className='mx-auto' /> 
                                 <div className='mt-[20px] text-[12px] text-[#fff] leading-[19.51px] '>Upload Group Display Image</div>
                             </div>
                             <input id="dropzone-file" type="file" className="hidden" />
