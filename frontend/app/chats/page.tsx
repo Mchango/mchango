@@ -1,5 +1,6 @@
 import React from 'react'
 import SideNav from '../components/SideNav'
+import ChatComponent from '../components/ChatComponent'
 
 const Chats = () => {
   return (
@@ -8,6 +9,7 @@ const Chats = () => {
     <div className='w-full lg:max-w-[1400px]'>
         <div className='flex'>
             <SideNav />
+            <ChatComponent />
 
         </div>
     </div>
