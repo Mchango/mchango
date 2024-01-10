@@ -18,6 +18,19 @@
         "nameofgrp": "Adventure Funds Group",
         "grpdate": "Created on 20 July",
         "grpether": "500 Ether",
-        "grpno": 500
+        "grpno": 500,
+        "chat1": "Delware Savers",
+        "chat1time": "Created 6 months ago.",
+        "chat1members": "238 members",
+        "chat1totalcont": "Total Contribution: $510,900.00",
+        "chat2": "Philanthropy Circle",
+        "chat3": "Creative Ventures",
+        "chat3time": "Created 8 months ago.",
+        "chat3members": "340 members",
+        "chat3totalcont": "Total Contribution: $100,208.00",
+        "chat4": "Green Thumb Gardeners",
+        "chat4time": "Created 5 months ago.",
+        "chat4members": "100 members",
+        "chat4totalcont": "Total Contribution: $234,098.00"
     }
 ]
