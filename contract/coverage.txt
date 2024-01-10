@@ -1,0 +1,10 @@
+Compiling 19 files with 0.8.19
+Solc 0.8.19 finished in 7.40s
+Compiler run [32msuccessful![0m
+Analysing contracts...
+Running tests...
+| File                 | % Lines          | % Statements     | % Branches     | % Funcs        |
+|----------------------|------------------|------------------|----------------|----------------|
+| script/Mchango.s.sol | 100.00% (5/5)    | 100.00% (5/5)    | 100.00% (0/0)  | 100.00% (1/1)  |
+| src/Mchango.sol      | 84.40% (119/141) | 85.90% (134/156) | 82.14% (46/56) | 86.96% (20/23) |
+| Total                | 84.93% (124/146) | 86.34% (139/161) | 82.14% (46/56) | 87.50% (21/24) |
