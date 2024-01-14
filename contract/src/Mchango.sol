@@ -257,7 +257,7 @@ contract Mchango {
     /***
      * @dev Refactored and made compatible with backend operations
      */
-    function createMember(address _address) external {
+    function createMember(address _address) external returns (uint256) {
         if (_address == address(0)) {
             revert Mchango_BlankCompliance();
         }
@@ -275,6 +275,8 @@ contract Mchango {
         addressToMember[_address] = newMember;
         memberKeys.push(member_id);
         emit memberCreated(_address);
+
+        return member_id;
     }
 
     /**
@@ -284,7 +286,7 @@ contract Mchango {
         address _admin,
         uint256 _collateralValue,
         uint256 _numberOfCreatedGroups
-    ) external memberCompliance(_admin) {
+    ) external memberCompliance(_admin) returns (uint256 _id) {
         if (!isSubscriberPremium(_admin)) {
             if (_numberOfCreatedGroups >= 1) {
                 revert Mchango_UpgradeTier();
@@ -307,6 +309,8 @@ contract Mchango {
         admins.push(_admin);
 
         emit hasCreatedGroup(_admin, id);
+
+        return id;
     }
 
     /**
