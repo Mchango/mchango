@@ -108,7 +108,7 @@ const startContribution = async (
 ) => {
   validateStartContributionInput(startContributionInput)
   try {
-    const group = await GroupDB.findAndUpdateGroup(startContributionInput.id)
+    const group = await GroupDB.findGroupById(startContributionInput.id)
 
     if (!(await validateIsAdmin(group, startContributionInput.address)))
       return console.log('Member is not an admin')
@@ -118,16 +118,19 @@ const startContribution = async (
       address: startContributionInput.address,
     })
 
+    console.log(contributionValue)
+
     if (group.currentState === ('contribution' as CurrentState)) {
-      return console.log('Group is already in contribution phase')
+      return console.log(`${Group.name} is already in contribution phase`)
     }
 
-    group.contributionValue = contributionValue
+    group.contributionValue = contributionValue as Number
     group.currentState = 'contribution' as CurrentState
     group.timeLimit = startContributionInput.timeLimit
-    group.timer = new Date().getTime()
+    group.timer = Date.now()
 
     await group.save()
+    return console.log(`${group.name} started contribution`)
   } catch (error) {
     return console.error('An error occurred while starting contribution', error)
   }
@@ -148,7 +151,7 @@ const startRotation = async (id: Number, address: String) => {
       return console.log('Group is already in rotation phase')
 
     //? check if contribution time limit has elapsed
-    const contributionTime = group.timer
+    const contributionTime = group.timer.getTime()
     const contributionTimeLimit = group.timeLimit
     const currentTime = new Date().getTime()
 
@@ -321,15 +324,25 @@ const getAverageCollateralValue = async (collateralInput: DeleteGroupType) => {
     for (let memberAddress of group.groupMembers) {
       sumOfCollateral += group.collateralTracking.get(memberAddress)
     }
-    console.log(sumOfCollateral)
 
     const averageCollateralValue = sumOfCollateral / group.groupMembers.length
-    return console.log(averageCollateralValue)
+    return averageCollateralValue
   } catch (error) {
     console.error(
       'An error occurred while getting the average collateral value',
       error,
     )
+  }
+}
+
+const getCollateralValue = async (id: Number, address: String) => {
+  const group = await GroupDB.findGroupById(id)
+
+  try {
+    const collateralValue = group.collateralTracking.get(address)
+    console.log(collateralValue)
+  } catch (error) {
+    console.error('An error occurred while getting the collateral value', error)
   }
 }
 
@@ -458,7 +471,7 @@ const joinGroup = async (joinGroupInput: JoinGroupType) => {
 
     if (!member) return console.log('Member not found, Sign up to join a group')
 
-    const group = await GroupDB.findAndUpdateGroup(joinGroupInput.id)
+    const group = await GroupDB.findGroupById(joinGroupInput.id)
     const isValid = await validateGroupIdInput({
       groupDB: GroupDB,
       id: joinGroupInput.id,
@@ -489,8 +502,15 @@ const joinGroup = async (joinGroupInput: JoinGroupType) => {
       return console.log('Insufficient collateral to join this group')
 
     group.groupMembers.push(joinGroupInput.address)
-    group.isGroupMember = new Map().set(joinGroupInput.address, true)
-    group.collateralTracking = new Map().set(
+    if (!group.isGroupMember) {
+      group.isGroupMember = new Map()
+    }
+    group.isGroupMember.set(joinGroupInput.address, true)
+
+    if (!group.collateralTracking) {
+      group.collateralTracking = new Map()
+    }
+    group.collateralTracking.set(
       joinGroupInput.address,
       joinGroupInput.collateralValue,
     )
@@ -586,6 +606,89 @@ const contribute = async (contributeInput: ContributionType) => {
   }
 }
 
+//todo: yet to be tested
+const updateContributionTimeLimit = async (
+  timeLimitInput: DeleteGroupType,
+  newTimeLimit: Number,
+) => {
+  validateDeleteGroupInput(timeLimitInput)
+
+  try {
+    const group = await GroupDB.findGroupById(timeLimitInput.id)
+    const admin = await MemberDB.getMemberByAddress(timeLimitInput.address)
+
+    const isGroupAdmin = await validateIsAdmin(group, admin)
+    if (!isGroupAdmin) {
+      return console.log('Not admin of this group')
+    }
+
+    group.timeLimit = newTimeLimit
+    await group.save()
+  } catch (error) {
+    console.error(
+      'An error occurred while updating contribution time limit',
+      error,
+    )
+  }
+}
+/**utility functions */
+//todo: yet to be tested
+const penalize = async (id: Number) => {
+  if (!id || typeof id !== 'number') {
+    return console.log('Invalid id')
+  }
+
+  try {
+    const group = await GroupDB.findGroupById(id)
+
+    for (let memberAddress of group.eligibleMembers) {
+      const participant = group.participants
+        .flat()
+        .find((participant: FullParticipantType) => {
+          return participant.participantAddress === memberAddress
+        })
+
+      if (!participant.hasDonated) {
+        participant.reputation -= 1
+      }
+
+      await group.save()
+
+      if (
+        group.collateralTracking.get(memberAddress) - group.contributionValue >
+        0
+      ) {
+        if (participant.reputation > 0) {
+          await removeEligibilityStatus(group, memberAddress)
+        } else if (participant.reputation <= 0) {
+          await removeMember(group, memberAddress)
+        }
+      } else {
+        await removeMember(group, memberAddress)
+      }
+    }
+
+    await group.save()
+    return console.log('Successfully penalized members')
+  } catch (error) {
+    return console.log('An error occurred while penalizing members', error)
+  }
+}
+
+const removeMember = async (group: any, memberAddress: String) => {
+  group.eligibleMembers.splice(group.eligibleMembers.indexOf(memberAddress), 1)
+  group.isEligible.delete(memberAddress)
+  group.participants.splice(group.participants.indexOf(memberAddress), 1)
+  group.isGroupMember.delete(memberAddress)
+  group.collateralTracking.set(memberAddress, 0)
+}
+
+const removeEligibilityStatus = async (group: any, memberAddress: String) => {
+  group.eligibleMembers.splice(group.eligibleMembers.indexOf(memberAddress), 1)
+  group.isEligible.delete(memberAddress)
+  group.participants.splice(group.participants.indexOf(memberAddress), 1)
+}
+
 const handleContributionState = async (
   address: String,
   group: any,
@@ -622,7 +725,6 @@ const handleRotationState = async (
 
   group.balance += amount
 }
-
 export {
   startContribution,
   startRotation,
@@ -637,4 +739,6 @@ export {
   deleteGroup,
   joinGroup,
   contribute,
+  updateContributionTimeLimit,
+  penalize,
 }
