@@ -33,7 +33,6 @@ import {
 } from '../types'
 
 const PREMIUM_FEE = 0.5 as Number
-
 /**Database functions */
 const MemberDB = {
   getMemberByAddress: async (address: String) => {
@@ -68,7 +67,7 @@ const GroupDB = {
       timer: 0,
       timeLimit: 0,
       isGroupMember: new Map().set(group.address, true),
-      isEligible: new Map().set(group.address, true),
+      isEligibleMember: new Map().set(group.address, true),
       currentState: 'initialization' as CurrentState,
     })
   },
@@ -124,13 +123,15 @@ const startContribution = async (
       return console.log(`${Group.name} is already in contribution phase`)
     }
 
-    group.contributionValue = contributionValue as Number
+    group.contributionValue = contributionValue
     group.currentState = 'contribution' as CurrentState
     group.timeLimit = startContributionInput.timeLimit
     group.timer = Date.now()
 
     await group.save()
-    return console.log(`${group.name} started contribution`)
+    return console.log(
+      `${group.name} started contribution, contribution value: ${contributionValue}`,
+    )
   } catch (error) {
     return console.error('An error occurred while starting contribution', error)
   }
@@ -142,28 +143,38 @@ const startRotation = async (id: Number, address: String) => {
     return console.log('Invalid address')
 
   try {
-    const group = await GroupDB.findAndUpdateGroup(id)
+    const group = await GroupDB.findGroupById(id)
     if (!group) return console.log('Group not found')
 
     if (!(await validateIsAdmin(group, address)))
       return console.log(`${address} is not group admin`)
-    if (group.currentState === ('rotation' as CurrentState))
-      return console.log('Group is already in rotation phase')
 
-    //? check if contribution time limit has elapsed
-    const contributionTime = group.timer.getTime()
-    const contributionTimeLimit = group.timeLimit
-    const currentTime = new Date().getTime()
+    switch (group.currentState) {
+      case 'rotation' as CurrentState:
+        return console.log(`${group.name} is already in rotation phase`)
 
-    if (currentTime < contributionTime + contributionTimeLimit) {
-      return 'Contribution time limit has not elapsed yet.'
+      case 'initialization' as CurrentState:
+        return console.log('Group is still in initialization phase')
+
+      case 'contribution' as CurrentState:
+        const contributionTime = group.timer
+        const contributionTimeLimit = group.timeLimit
+        const currentTime = new Date().getTime()
+
+        if (currentTime < contributionTime + contributionTimeLimit) {
+          return 'Contribution time limit has not elapsed yet.'
+        }
+
+        if (group.eligibleMembers.length < 2)
+          return console.log('Group does not have enough eligible members')
+
+        group.currentState = 'rotation' as CurrentState
+        group.admin = group.eligibleMembers[group.eligibleMembers.length - 1]
+
+        await group.save()
     }
 
-    if (group.eligibleMembers.length < 2)
-      return console.log('Group does not have enough eligible members')
-
-    group.currentState = 'rotation' as CurrentState
-    group.admin = group.eligibleMembers[group.eligibleMembers.length - 1]
+    return console.log(`${group.name} started rotation`)
   } catch (error) {
     return console.error('An error occurred while starting rotation', error)
   }
@@ -321,11 +332,20 @@ const getAverageCollateralValue = async (collateralInput: DeleteGroupType) => {
       return console.log('Member is not an admin')
 
     let sumOfCollateral = 0
-    for (let memberAddress of group.groupMembers) {
-      sumOfCollateral += group.collateralTracking.get(memberAddress)
-    }
 
+    for (let memberAddress of group.groupMembers) {
+      const memberCollateralValue = group.collateralTracking.get(memberAddress)
+
+      if (typeof memberCollateralValue === 'number') {
+        sumOfCollateral += memberCollateralValue
+      }
+    }
+    if (sumOfCollateral === 0 || isNaN(sumOfCollateral)) {
+      return console.log('No collateral value found')
+    }
+    console.log(sumOfCollateral)
     const averageCollateralValue = sumOfCollateral / group.groupMembers.length
+
     return averageCollateralValue
   } catch (error) {
     console.error(
@@ -385,6 +405,7 @@ const createNewParticipant = async (participant: ParticipantType) => {
   }
 
   participant.group.participants.push(newParticipant)
+
   await participant.group.save()
 }
 
@@ -421,6 +442,10 @@ const createGroup = async (group: GroupType) => {
     }
 
     const newGroup = await GroupDB.createGroup(group)
+    newGroup.groupMembers.push(group.address)
+    newGroup.eligibleMembers.push(group.address)
+
+    await newGroup.save()
 
     createNewParticipant({
       group: newGroup,
@@ -495,25 +520,34 @@ const joinGroup = async (joinGroupInput: JoinGroupType) => {
       groupDB: GroupDB,
     })
     if (isMemberAlreadyInGroup) return console.log('Member already in group')
-    if (group.currentState !== ('initialization' as CurrentState))
-      return console.log('Can not join group as of this time')
 
-    if (joinGroupInput.collateralValue < group.collateral)
-      return console.log('Insufficient collateral to join this group')
+    switch (group.currentState) {
+      case 'initialization' as CurrentState:
+        if (joinGroupInput.collateralValue < group.collateral)
+          return console.log('Insufficient collateral to join this group')
 
-    group.groupMembers.push(joinGroupInput.address)
-    if (!group.isGroupMember) {
-      group.isGroupMember = new Map()
+        group.groupMembers.push(joinGroupInput.address)
+        if (!group.isGroupMember) {
+          group.isGroupMember = new Map()
+        }
+        group.isGroupMember.set(joinGroupInput.address, true)
+
+        if (!group.collateralTracking) {
+          group.collateralTracking = new Map()
+        }
+        group.collateralTracking.set(
+          joinGroupInput.address,
+          joinGroupInput.collateralValue,
+        )
+
+        break
+
+      case 'contribution' as CurrentState:
+        return console.log('Group is in contribution, cannot join')
+
+      case 'rotation' as CurrentState:
+        return console.log('Group is in rotation, cannot join')
     }
-    group.isGroupMember.set(joinGroupInput.address, true)
-
-    if (!group.collateralTracking) {
-      group.collateralTracking = new Map()
-    }
-    group.collateralTracking.set(
-      joinGroupInput.address,
-      joinGroupInput.collateralValue,
-    )
 
     await group.save()
 
@@ -527,7 +561,7 @@ const contribute = async (contributeInput: ContributionType) => {
   validateContributeInput(contributeInput)
 
   try {
-    const group = await GroupDB.findAndUpdateGroup(contributeInput.id)
+    const group = await GroupDB.findGroupById(contributeInput.id)
     const member = await MemberDB.getMemberByAddress(contributeInput.address)
 
     if (!group) return console.log('Group not found')
@@ -550,7 +584,7 @@ const contribute = async (contributeInput: ContributionType) => {
       })
 
     switch (group.currentState) {
-      case 'contribution':
+      case 'contribution' as CurrentState:
         if (contributeInput.amount < group.contributionValue) {
           return console.log('Insufficient Amount')
         }
@@ -568,11 +602,15 @@ const contribute = async (contributeInput: ContributionType) => {
           amountDonated: contributeInput.amount,
         })
 
+        await group.save()
+
         await handleContributionState(
           contributeInput.address,
-          group,
+          contributeInput.id,
           contributeInput.amount,
         )
+
+        console.log('passed contribution state')
 
         console.log(
           `${contributeInput.address} contributed ${contributeInput.amount} to ${group.name}`,
@@ -584,7 +622,13 @@ const contribute = async (contributeInput: ContributionType) => {
           return console.log('Only participant can contribute in rotation')
         }
 
-        if (!(await validateIsEligible(group, contributeInput.address))) {
+        if (
+          !(await validateIsEligible(
+            GroupDB,
+            contributeInput.id,
+            contributeInput.address,
+          ))
+        ) {
           return console.log(
             'Not eligible to contribute in rotation, please wait for the next contribution phase',
           )
@@ -592,45 +636,88 @@ const contribute = async (contributeInput: ContributionType) => {
 
         await handleRotationState(
           contributeInput.address,
-          group,
+          contributeInput.id,
           contributeInput.amount,
         )
         break
 
       default:
-        console.log("Can only contribute in 'contribution' or 'rotation' state")
-        break
+        return console.log(
+          "Can only contribute in 'contribution' or 'rotation' state",
+        )
     }
+
+    await group.save()
   } catch (error) {
     console.error('An error occurred while contributing', error)
   }
 }
 
-//todo: yet to be tested
-const updateContributionTimeLimit = async (
-  timeLimitInput: DeleteGroupType,
-  newTimeLimit: Number,
-) => {
-  validateDeleteGroupInput(timeLimitInput)
+const disburse = async (disburseInput: DeleteGroupType) => {
+  validateDeleteGroupInput(disburseInput)
 
   try {
-    const group = await GroupDB.findGroupById(timeLimitInput.id)
-    const admin = await MemberDB.getMemberByAddress(timeLimitInput.address)
+    const group = await GroupDB.findGroupById(disburseInput.id)
+    const contributionTime = group.timer.getTime()
+    const contributionTimeLimit = group.timeLimit
+    const currentTime = new Date().getTime()
 
-    const isGroupAdmin = await validateIsAdmin(group, admin)
-    if (!isGroupAdmin) {
-      return console.log('Not admin of this group')
+    if (currentTime < contributionTime + contributionTimeLimit) {
+      return 'Contribution time limit has not elapsed yet.'
     }
 
-    group.timeLimit = newTimeLimit
+    //? penalize eligible members that did not contribute
+    await penalize(disburseInput.id)
+    const recipientAddress = group.eligibleMembers[0]
+    const member = await MemberDB.getMemberByAddress(recipientAddress)
+    if (!member) return console.log('Member not found')
+
+    //? fetch participant data of the recipient address
+    const participant = group.participants
+      .flat() //Flatten the array to remove nested array
+      .find((participant: FullParticipantType) => {
+        return participant.participantAddress === recipientAddress
+      })
+
+    if (!participant) return console.log('Participant not found')
+    if (!participant.hasDonated)
+      return console.log('Participant has not donated')
+    if (participant.hasReceivedFunds)
+      return console.log('Participant has received funds for this round')
+
+    //? send the group balance to recipient
+    await handleDisbursement(disburseInput.id, group.balance, recipientAddress)
+    group.balance = 0
+    participant.hasReceivedFunds = true
+
     await group.save()
-  } catch (error) {
-    console.error(
-      'An error occurred while updating contribution time limit',
-      error,
+
+    await handleResetParticipantHasDonatedState(disburseInput.id)
+
+    //? move the recipient address to the back of the array
+    group.eligibleMembers.push(group.eligibleMembers.shift())
+
+    await group.save()
+
+    //? check if all participant has received funds
+    const hasAllParticipantReceivedFunds = await handleCheckIfAllParticipantsHaveReceivedFunds(
+      disburseInput.id,
     )
+
+    if (hasAllParticipantReceivedFunds) {
+      //? call end rotation
+    }
+
+    await group.save()
+
+    return console.log(
+      `Successfully disbursed ${group.balance} to ${member.name}`,
+    )
+  } catch (error) {
+    console.error('An error occurred while disbursing', error)
   }
 }
+
 /**utility functions */
 //todo: yet to be tested
 const penalize = async (id: Number) => {
@@ -661,10 +748,10 @@ const penalize = async (id: Number) => {
         if (participant.reputation > 0) {
           await removeEligibilityStatus(group, memberAddress)
         } else if (participant.reputation <= 0) {
-          await removeMember(group, memberAddress)
+          await removeMember(id, memberAddress)
         }
       } else {
-        await removeMember(group, memberAddress)
+        await removeMember(id, memberAddress)
       }
     }
 
@@ -675,55 +762,195 @@ const penalize = async (id: Number) => {
   }
 }
 
-const removeMember = async (group: any, memberAddress: String) => {
-  group.eligibleMembers.splice(group.eligibleMembers.indexOf(memberAddress), 1)
-  group.isEligible.delete(memberAddress)
-  group.participants.splice(group.participants.indexOf(memberAddress), 1)
-  group.isGroupMember.delete(memberAddress)
-  group.collateralTracking.set(memberAddress, 0)
+const updateContributionTimeLimit = async (
+  timeLimitInput: DeleteGroupType,
+  newTimeLimit: Number,
+) => {
+  validateDeleteGroupInput(timeLimitInput)
+
+  try {
+    const group = await GroupDB.findGroupById(timeLimitInput.id)
+    const admin = await MemberDB.getMemberByAddress(timeLimitInput.address)
+
+    const isGroupAdmin = await validateIsAdmin(group, admin)
+    if (!isGroupAdmin) {
+      return console.log('Not admin of this group')
+    }
+
+    group.timeLimit = newTimeLimit
+    await group.save()
+
+    return console.log('Time limit updated')
+  } catch (error) {
+    console.error(
+      'An error occurred while updating contribution time limit',
+      error,
+    )
+  }
 }
 
-const removeEligibilityStatus = async (group: any, memberAddress: String) => {
-  group.eligibleMembers.splice(group.eligibleMembers.indexOf(memberAddress), 1)
-  group.isEligible.delete(memberAddress)
-  group.participants.splice(group.participants.indexOf(memberAddress), 1)
+const removeMember = async (id: Number, memberAddress: String) => {
+  const group = await GroupDB.findGroupById(id)
+  if (!group) return console.log('Group not found')
+
+  try {
+    group.eligibleMembers.splice(
+      group.eligibleMembers.indexOf(memberAddress),
+      1,
+    )
+    group.isEligible.delete(memberAddress)
+    group.participants.splice(group.participants.indexOf(memberAddress), 1)
+    group.isGroupMember.delete(memberAddress)
+    group.collateralTracking.set(memberAddress, 0)
+
+    await group.save()
+  } catch (error) {
+    console.error('An error occurred while removing member', error)
+  }
+}
+
+const removeEligibilityStatus = async (id: number, memberAddress: String) => {
+  const group = await GroupDB.findGroupById(id)
+  if (!group) return console.log('Group not found')
+
+  try {
+    group.eligibleMembers.splice(
+      group.eligibleMembers.indexOf(memberAddress),
+      1,
+    )
+    group.isEligible.delete(memberAddress)
+    group.participants.splice(group.participants.indexOf(memberAddress), 1)
+
+    await group.save()
+  } catch (error) {
+    console.error('An error occurred while removing eligibility status', error)
+  }
 }
 
 const handleContributionState = async (
   address: String,
-  group: any,
+  id: Number,
   amount: Number,
 ) => {
-  const participant = group.participants
-    .flat() //Flatten the array to remove nested array
-    .find((participant: FullParticipantType) => {
-      return participant.participantAddress === address
-    })
+  try {
+    const group = await GroupDB.findGroupById(id)
+    if (!group) return console.log('Group not found')
 
-  participant.hasDonated = true
-  participant.timeStamp = Date.now()
+    const participant = group.participants
+      .flat() //Flatten the array to remove nested array
+      .find((participant: FullParticipantType) => {
+        return participant.participantAddress === address
+      })
 
-  group.balance += amount
-  group.eligibleMembers.push(participant.participantAddress)
-  group.isEligible.set(participant.participantAddress, true)
+    if (!participant) return console.log('Participant not found')
+
+    participant.hasDonated = true
+    participant.timeStamp = Date.now()
+    participant.isEligible = true
+
+    group.balance += amount
+    group.eligibleMembers.push(address)
+    group.isEligibleMember.set(participant.participantAddress, true)
+
+    await group.save()
+  } catch (error) {
+    console.error('An error occurred while updating contribution state', error)
+  }
 }
 
 const handleRotationState = async (
   address: String,
-  group: any,
+  id: Number,
   amount: Number,
 ) => {
-  const participant = group.participants
-    .flat() //Flatten the array to remove nested array
-    .find((participant: FullParticipantType) => {
-      return participant.participantAddress === address
-    })
-  participant.amountDonated += amount
-  participant.hasDonated = true
-  participant.timeStamp = Date.now()
-  participant.reputation += 1
+  const group = await GroupDB.findGroupById(id)
+  if (!group) return console.log('Group not found')
 
-  group.balance += amount
+  try {
+    const participant = group.participants
+      .flat() //Flatten the array to remove nested array
+      .find((participant: FullParticipantType) => {
+        return participant.participantAddress === address
+      })
+    if (!participant) return console.log('Participant not found')
+    if (!participant.isEligible)
+      return console.log('Participant is not eligible')
+
+    participant.amountDonated += amount
+    participant.hasDonated = true
+    participant.timeStamp = Date.now()
+    participant.reputation += 1
+
+    group.balance += amount
+
+    await group.save()
+  } catch (error) {
+    console.error('An error occurred while updating rotation state', error)
+  }
+}
+
+const handleDisbursement = async (
+  id: Number,
+  amount: Number,
+  address: String,
+) => {
+  //? smart contract disbursement function goes here
+}
+
+const handleCheckIfAllParticipantsHaveReceivedFunds = async (id: Number) => {
+  let hasAllParticipantsReceivedFunds = false
+  try {
+    const group = await GroupDB.findGroupById(id)
+    if (!group) return console.log('Group not found')
+
+    for (let memberAddress of group.eligibleMembers) {
+      const participant = group.participants
+        .flat()
+        .find((participant: FullParticipantType) => {
+          return participant.participantAddress === memberAddress
+        })
+
+      let numberOfParticipantThatHasReceivedFunds = 0
+      if (participant.hasReceivedFunds) {
+        numberOfParticipantThatHasReceivedFunds++
+      }
+
+      if (
+        numberOfParticipantThatHasReceivedFunds === group.eligibleMembers.length
+      ) {
+        hasAllParticipantsReceivedFunds = true
+      }
+    }
+    await group.save()
+    return hasAllParticipantsReceivedFunds
+  } catch (error) {
+    console.error(
+      'An error occurred while checking if all participants have received funds',
+      error,
+    )
+  }
+}
+
+const handleResetParticipantHasDonatedState = async (id: Number) => {
+  try {
+    const group = await GroupDB.findGroupById(id)
+    if (!group) return console.log('Group not found')
+    for (let memberAddress of group.eligibleMembers) {
+      const participant = group.participants
+        .flat()
+        .find((participant: FullParticipantType) => {
+          return participant.participantAddress === memberAddress
+        })
+
+      participant.hasDonated = false
+    }
+    await group.save()
+  } catch (error) {
+    console.error(
+      "An error occurred while resetting participant's donation state",
+      error,
+    )
+  }
 }
 export {
   startContribution,
@@ -741,4 +968,5 @@ export {
   contribute,
   updateContributionTimeLimit,
   penalize,
+  disburse,
 }
