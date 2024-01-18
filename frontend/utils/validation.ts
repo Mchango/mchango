@@ -119,11 +119,15 @@ export const validateIsMemberOfGroup = async (
 }
 
 export const validateIsEligible = async (
-  group: any,
+  groupDB: any,
+  id: Number,
   address: String,
 ): Promise<Boolean | void | String> => {
   let isEligible = false
-
+  const group = await groupDB.findGroupById(id)
+  if (!group) {
+    return console.log('Group not found')
+  }
   try {
     if (group.isEligibleMember.get(address, true)) {
       isEligible = true
