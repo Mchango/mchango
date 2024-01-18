@@ -1,20 +1,26 @@
+import * as dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
-let isConnected = false
+dotenv.config()
 
-export const connectToDB = async () => {
+let cached = (global as any).mongoose || { conn: null, promise: null }
+
+export const connectDB = async () => {
   mongoose.set('strictQuery', true)
+  if (cached.conn) return cached.conn
 
-  if (!process.env.MONGODB_URL) return console.log('MongoDB Url is required')
+  if (!process.env.MONGODB_URL)
+    throw new Error('Please add your Mongo URI to.env.local')
 
-  if (isConnected) return console.log('Connection to MongoDB is established')
+  cached.promise = mongoose.connect(process.env.MONGODB_URL, {
+    dbName: 'Mchango',
+    bufferCommands: false,
+  })
 
-  try {
-    await mongoose.connect(process.env.MONGODB_URL)
+  console.log('Connecting to MongoDB...')
 
-    isConnected = true
-    console.log('Connected to MongoDB')
-  } catch (error) {
-    console.log('An error occurred', error)
-  }
+  cached.conn = await cached.promise
+  console.log('MongoDB connected')
+
+  return cached.conn
 }
