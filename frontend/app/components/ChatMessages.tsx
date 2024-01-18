@@ -3,7 +3,8 @@ import React from 'react';
 import linedot from '../assets/linedot.svg';
 import search from '../assets/search.svg';
 import tokensData from '../data.json';
-import peep from '../assets/peep.svg'
+import peep from '../assets/peep.svg';
+import ticks from '../assets/ticks.png'
 
 interface Token {
 chat1: string;
@@ -45,15 +46,29 @@ const ChatMessages = () => {
             </div>
           </div>
           <div className=''>
-            <div className='chatcard text-[#fff] py-[39px] font-bold pl-[31px] w-[371px]  '>
-              <div className=' text-[24px] leading-[24px]  tracking-[0.5px] mb-[12px] '>{token.chat1}</div>
-              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[16.5px] '>{token.chat1time}</div>
-              <div className='flex'>
+            <div className='chatcard text-[#fff] py-[39px] font-bold px-[31px] w-[371px]  '>
+              <div className=' text-[24px] leading-[24px] font-bold tracking-[0.5px] mb-[12px] '>{token.chat1}</div>
+              <div className='text-[15px] leading-[20px] font-bold tracking-[0.3px] my-[16.5px] '>{token.chat1time}</div>
+              <div className='flex justify-between '>
+                <div className='flex'>
                 <Image src={peep} alt='svg' className=''/>
-                <div className='text-[10px] leading-[15px] text-[#fff] my-auto ml-[4px] '>{token.chat1members}</div>
+                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat1members}</div>
+                </div>
+                <Image src={ticks} alt='tick' className='' />
+              </div>
+            </div>
+          </div>
+          <div  className='mx-auto border-[1px] border-[#fff] text-[#FFFFFF] '>
+            <div className='w-[308px] border-[1px] border-[#fff] mt-[32px] mx-auto '>
+              <div className='text-[24px] leading-[24px] tracking-[0.5px] '>{token.chat2}</div>
+              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[12px] '>{token.chat1time}</div>
+              <div className='flex my-[12px]'>
+                <Image src={peep} alt='svg' className=''/>
+                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat1members}</div>
 
               </div>
             </div>
+
           </div>
 
         </div>
