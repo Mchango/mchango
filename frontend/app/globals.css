@@ -86,5 +86,5 @@ background: linear-gradient(182deg, #0FF 1.66%, #A87BFF 144.64%);
 }
 .chatcard {
   border-radius: 5px;
-background: var(--gradient, linear-gradient(66deg, #1566DF 0%, #21C5DB 84.01%));
+  background: linear-gradient(66deg, #008080 0%, #400080 84.01%);
 }

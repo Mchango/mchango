@@ -56,19 +56,61 @@ const ChatMessages = () => {
                 </div>
                 <Image src={ticks} alt='tick' className='' />
               </div>
-            </div>
-          </div>
-          <div  className='mx-auto border-[1px] border-[#fff] text-[#FFFFFF] '>
-            <div className='w-[308px] border-[1px] border-[#fff] mt-[32px] mx-auto '>
-              <div className='text-[24px] leading-[24px] tracking-[0.5px] '>{token.chat2}</div>
-              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[12px] '>{token.chat1time}</div>
-              <div className='flex my-[12px]'>
-                <Image src={peep} alt='svg' className=''/>
-                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat1members}</div>
-
+              <div className='flex mt-[12px] '>
+              <Image src={peep} alt='svg' className=''/>
+              <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>Total Contribution: {token.chat1totalcont}</div>
               </div>
             </div>
-
+          </div>
+          <div  className='mx-auto text-[#FFFFFF] '>
+            <div className='w-[308px] mt-[32px] mx-auto '>
+              <div className='text-[24px] leading-[24px] tracking-[0.5px] '>{token.chat2}</div>
+              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[12px] '>{token.chat1time}</div>
+              <div className='flex justify-between my-[12px] '>
+                <div className='flex'>
+                <Image src={peep} alt='svg' className=''/>
+                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat1members}</div>
+                </div>
+                <div className='w-[24px] h-[24px] rounded-[50%] bg-[#FD0D0099] text-[#fff] flex justify-center '>3</div>
+              </div>
+              <div className='flex mt-[12px] mb-[25px] '>
+              <Image src={peep} alt='svg' className=''/>
+              <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>Total Contribution: {token.chat1totalcont}</div>
+              </div>
+              <hr className='bg-[#DDDDDD]'/>
+            </div>
+            <div className='w-[308px] mt-[32px] mx-auto '>
+              <div className='text-[24px] leading-[24px] tracking-[0.5px] '>{token.chat3}</div>
+              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[12px] '>{token.chat3time}</div>
+              <div className='flex justify-between my-[12px] '>
+                <div className='flex'>
+                <Image src={peep} alt='svg' className=''/>
+                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat3members}</div>
+                </div>
+                <div className='w-[24px] h-[24px] rounded-[50%] bg-[#FD0D0099] text-[#fff] flex justify-center '>2</div>
+              </div>
+              <div className='flex mt-[12px] mb-[25px] '>
+              <Image src={peep} alt='svg' className=''/>
+              <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>Total Contribution: {token.chat3totalcont}</div>
+              </div>
+              <hr className='bg-[#DDDDDD]'/>
+            </div>
+            <div className='w-[308px] mt-[32px] mx-auto '>
+              <div className='text-[24px] leading-[24px] tracking-[0.5px] '>{token.chat4}</div>
+              <div className='text-[15px] leading-[20px] tracking-[0.3px] my-[12px] '>{token.chat4time}</div>
+              <div className='flex justify-between my-[12px] '>
+                <div className='flex'>
+                <Image src={peep} alt='svg' className=''/>
+                <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>{token.chat4members}</div>
+                </div>
+                <div className='w-[24px] h-[24px] rounded-[50%] bg-[#FD0D0099] text-[#fff] flex justify-center '>4</div>
+              </div>
+              <div className='flex mt-[12px] mb-[25px] '>
+              <Image src={peep} alt='svg' className=''/>
+              <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>Total Contribution: {token.chat4totalcont}</div>
+              </div>
+              <hr className='bg-[#DDDDDD]'/>
+            </div>
           </div>
 
         </div>
