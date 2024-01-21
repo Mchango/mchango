@@ -20,7 +20,6 @@ import {
 
 import {
   CreateMemberType,
-  GroupStateType,
   GroupType,
   CurrentState,
   PremiumType,
@@ -31,7 +30,6 @@ import {
   StartContributionType,
   ContributionType,
 } from '../lib/types'
-import { PrefetchKind } from 'next/dist/client/components/router-reducer/router-reducer-types'
 
 const PREMIUM_FEE = 0.5 as Number
 
@@ -44,7 +42,6 @@ class GroupNotFoundError extends Error {}
 class ParticipantNotEligibleError extends Error {}
 class AdminError extends Error {}
 class GroupStateError extends Error {}
-
 class SubscriptionError extends Error {}
 
 /**Database functions */
@@ -460,7 +457,7 @@ const updateMemberProfilePicture = async (
 const createNewParticipant = async (participant: ParticipantType) => {
   const newParticipant = {
     name: participant.name,
-    participantAddress: participant.address,
+    participantAddress: participant.participantAddress,
     amountDonated: participant.amountDonated ? participant.amountDonated : 0,
     amountCollected: 0,
     timeStamp: new Date(),
@@ -518,7 +515,7 @@ const createGroup = async (group: GroupType) => {
 
     createNewParticipant({
       group: newGroup,
-      address: group.admin,
+      participantAddress: group.admin as string,
       name: memberName,
       amountDonated: 0,
     })
@@ -704,7 +701,7 @@ const contribute = async (contributeInput: ContributionType) => {
 
         await createNewParticipant({
           group: group,
-          address: contributeInput.address,
+          participantAddress: contributeInput.address as string,
           name: member.name,
           amountDonated: contributeInput.amount,
         })
@@ -780,7 +777,7 @@ const disburse = async (disburseInput: DeleteGroupType) => {
     await validateContributionTime(group)
 
     //? penalize eligible members that did not contribute
-    await penalize(disburseInput.id as number)
+    await penalize(group)
     const recipientAddress = group.eligibleMembers[0]
 
     const member = await MemberDB.getMemberByAddress(recipientAddress)
@@ -824,7 +821,7 @@ const disburse = async (disburseInput: DeleteGroupType) => {
 
     //? check if all participant has received funds
     const hasAllParticipantReceivedFunds = await handleCheckIfAllParticipantsHaveReceivedFunds(
-      disburseInput.id,
+      group,
     )
 
     if (hasAllParticipantReceivedFunds) {
@@ -832,7 +829,7 @@ const disburse = async (disburseInput: DeleteGroupType) => {
       return console.log('All participants have received funds')
     }
 
-    group.contributionTime = new Date().getTime()
+    group.timer = new Date().getTime()
 
     await group.save()
 
@@ -845,19 +842,8 @@ const disburse = async (disburseInput: DeleteGroupType) => {
 }
 
 /**utility functions */
-/**
- *
- * @param id group id
- * @dev this function is still undergoing testing
- */
-const penalize = async (id: number): Promise<void> => {
-  if (typeof id !== 'number') {
-    console.log('Invalid id')
-    return
-  }
-
+const penalize = async (group: any): Promise<void> => {
   try {
-    const group = await GroupDB.findGroupById(id)
     const participantsFlat = group.participants.flat()
     let memberToBePenalized: string | undefined
 
@@ -870,25 +856,35 @@ const penalize = async (id: number): Promise<void> => {
         participant.reputation -= 1
         memberToBePenalized = participant.name
 
-        const collateralExcess =
-          group.collateralTracking.get(memberAddress) -
-            group.contributionValue >
-          0
-        const shouldRemoveEligibility =
-          participant.reputation > 0 && collateralExcess
-        const shouldRemoveMember =
-          participant.reputation <= 0 || !collateralExcess
+        const collateralIsSufficient =
+          group.collateralTracking.get(memberAddress) >= group.collateralValue
 
-        if (shouldRemoveEligibility) {
-          await handleRemoveEligibilityStatus(id, memberAddress)
+        let shouldRemoveEligibility = false
+        let shouldRemoveMember = false
+
+        if (participant.reputation > 0 && collateralIsSufficient) {
+          shouldRemoveEligibility = true
         }
-        if (shouldRemoveMember) {
-          await handleRemoveMember(id, memberAddress)
+
+        if (participant.reputation <= 0 || !collateralIsSufficient) {
+          shouldRemoveMember = true
+        }
+
+        switch (shouldRemoveEligibility) {
+          case true:
+            console.log('Removing eligibility status')
+            await handleRemoveEligibilityStatus(group, memberAddress)
+            break
+        }
+
+        switch (shouldRemoveMember) {
+          case true:
+            console.log('Removing member')
+            await handleRemoveMember(group, memberAddress)
+            break
         }
       }
     }
-
-    await group.save()
 
     if (!memberToBePenalized) {
       console.log('No member to be penalized')
@@ -901,116 +897,117 @@ const penalize = async (id: number): Promise<void> => {
   }
 }
 
-const handleRemoveMember = async (id: Number, memberAddress: String) => {
+const handleRemoveMember = async (
+  group: GroupType,
+  memberAddress: string,
+): Promise<void> => {
   try {
-    const group = await GroupDB.findGroupById(id)
     const member = await MemberDB.getMemberByAddress(memberAddress)
 
-    if (!group) throw new GroupNotFoundError('Group not found')
-    if (!member) throw new MemberNotFoundError('Member not found')
+    if (!member) {
+      throw new MemberNotFoundError('Member not found')
+    }
 
-    const participantFlat = group.participants.flat()
+    const participantFlat = group.participants ? group.participants.flat() : []
 
     const participant = participantFlat.find(
-      (p: FullParticipantType) => p.participantAddress === memberAddress,
+      (p) => p.participantAddress === memberAddress,
     )
 
     if (!participant) {
       throw new ParticipantNotFoundError('Participant not found')
     }
-    await handleDeleteParticipant(id, memberAddress)
-    await handleRemoveMemberFromMapping(id, memberAddress as string)
 
-    member.reputation = Math.max(0, member.reputation - 1)
+    removeMemberFromGroup(group, memberAddress)
+    decrementMemberReputation(member)
 
-    await group.save()
-    await member.save()
+    console.log('Successfully deleted participant')
   } catch (error) {
-    console.error('An error occurred while removing member', error)
+    console.error('An error occurred while removing member:', error)
     throw error
   }
 }
 
-const handleRemoveMemberFromMapping = async (id: Number, address: string) => {
-  try {
-    const group = await GroupDB.findGroupById(id)
-    if (!group) return console.log('Group not found')
-
-    group.isGroupMember.delete(address)
-    group.collateralTracking.delete(address)
-    group.isEligibleMember.delete(address)
-    group.groupMembers.splice(group.eligibleMembers.indexOf(address), 1)
-
-    await group.save()
-
-    console.log('Successfully removed member from mapping')
-  } catch (error) {
-    console.error('An error occurred while removing member', error)
+function removeMemberFromGroup(group: any, memberAddress: string): void {
+  const indexInEligible = group.eligibleMembers.indexOf(memberAddress)
+  if (indexInEligible > -1) {
+    group.eligibleMembers.splice(indexInEligible, 1)
   }
+
+  group.isGroupMember.delete(memberAddress)
+  group.collateralTracking.delete(memberAddress)
+  group.isEligibleMember.delete(memberAddress)
+
+  const indexInGroupMembers = group.groupMembers.indexOf(memberAddress)
+  if (indexInGroupMembers > -1) {
+    group.groupMembers.splice(indexInGroupMembers, 1)
+  }
+
+  const participantIndex = group.participants.findIndex(
+    (participantArray: FullParticipantType[]) =>
+      participantArray.some(
+        (participant) => participant.participantAddress === memberAddress,
+      ),
+  )
+
+  if (participantIndex > -1) {
+    group.participants.splice(participantIndex, 1)
+  }
+}
+
+async function decrementMemberReputation(member: any): Promise<void> {
+  member.reputation = Math.max(0, member.reputation - 1)
+  await member.save()
 }
 
 const handleRemoveEligibilityStatus = async (
-  id: number,
-  memberAddress: String,
-) => {
+  group: any,
+  memberAddress: string,
+): Promise<void> => {
   try {
-    const group = await GroupDB.findGroupById(id)
-    if (!group) throw new GroupNotFoundError('Group not found')
-
-    const amountToDeductFromCollateral = group.collateral
-    const newCollateralValue =
-      group.collateralTracking.get(memberAddress) - amountToDeductFromCollateral
+    if (!(group.collateralTracking instanceof Map)) {
+      console.error(
+        'group.collateralTracking is not initialized properly:',
+        group.collateralTracking,
+      )
+      throw new Error('collateralTracking is not a Map')
+    }
+    // Deduct from collateral and update the tracking map
+    const currentCollateral = group.collateralTracking?.get(memberAddress) || 0
+    const newCollateralValue = currentCollateral - group.collateral
     group.collateralTracking.set(memberAddress, newCollateralValue)
 
-    const participantFlat = group.participants.flat()
-
-    const participant = participantFlat.find(
-      (p: FullParticipantType) => p.participantAddress === memberAddress,
-    )
-
+    // Find and remove the participant
+    const participant = group.participants
+      .flat()
+      .find((p: FullParticipantType) => p.participantAddress === memberAddress)
     if (!participant) {
       throw new ParticipantNotFoundError('Participant not found')
     }
-    await handleDeleteParticipant(id, memberAddress)
 
-    await group.save()
-  } catch (error) {
-    console.error('An error occurred while removing eligibility status', error)
-  }
-}
+    // Remove from eligible members
+    const eligibleMemberIndex = group.eligibleMembers.indexOf(memberAddress)
+    if (eligibleMemberIndex !== -1) {
+      group.eligibleMembers.splice(eligibleMemberIndex, 1)
+    }
 
-const handleDeleteParticipant = async (
-  id: Number,
-  memberAddress: String,
-): Promise<void> => {
-  try {
-    const group = await GroupDB.findGroupById(id)
-    if (!group) return console.log('Group not found')
-
-    group.eligibleMembers.splice(
-      group.eligibleMembers.indexOf(memberAddress),
-      1,
-    )
-
+    // Update eligibility status
     group.isEligibleMember.set(memberAddress, false)
 
+    // Find the participant's index in the nested array and remove it
     const participantIndex = group.participants.findIndex(
       (participantArray: FullParticipantType[]) =>
-        participantArray.some(
-          (participant: FullParticipantType) =>
-            participant.participantAddress === memberAddress,
-        ),
+        participantArray.some((p) => p.participantAddress === memberAddress),
     )
 
     if (participantIndex > -1) {
       group.participants.splice(participantIndex, 1)
-      await group.save()
-      return console.log('Successfully deleted participant')
+      console.log('Successfully deleted participant')
     } else {
-      return console.log('Participant not found in the group')
+      console.log('Participant not found in the group')
     }
   } catch (error) {
-    console.error('An error occurred while deleting participant', error)
+    console.error('An error occurred while removing eligibility status:', error)
   }
 }
 
@@ -1119,12 +1116,9 @@ const handleDisbursement = async (
   //? smart contract disbursement function goes here
 }
 
-const handleCheckIfAllParticipantsHaveReceivedFunds = async (id: Number) => {
+const handleCheckIfAllParticipantsHaveReceivedFunds = async (group: any) => {
   let hasAllParticipantsReceivedFunds = false
   try {
-    const group = await GroupDB.findGroupById(id)
-    if (!group) throw new GroupNotFoundError('Group not found')
-
     for (let memberAddress of group.eligibleMembers) {
       const participant = group.participants
         .flat()
@@ -1189,6 +1183,7 @@ const handleRotateParticipant = async (id: Number) => {
     )
   }
 }
+
 export {
   startContribution,
   startRotation,
