@@ -8,8 +8,20 @@ export type GroupType = {
   id: Number
   name: String
   description: String
-  address: String
+  profilePicture?: String
   collateral: Number
+  contributionValue?: Number
+  admin: String
+  balance?: Number
+  timer?: Number
+  timeLimit?: Number
+  isGroupMember?: Map<String, Boolean>
+  groupMembers?: Array<String>
+  isEligibleMember?: Map<String, Boolean>
+  eligibleMembers?: Array<String>
+  participants?: Array<ParticipantType>
+  collateralTracking?: Map<String, Number>
+  currentState?: CurrentState
 }
 
 export type DeleteGroupType = {
