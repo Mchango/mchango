@@ -57,7 +57,7 @@ export type GroupValidationType = {
 
 export type ParticipantType = {
   group: any
-  address: String
+  participantAddress: String
   name: String
   amountDonated: Number
 }
