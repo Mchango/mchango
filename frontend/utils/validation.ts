@@ -33,35 +33,33 @@ export const validateMemberInput = (memberInput: CreateMemberType) => {
   }
 }
 
-export const validateGroupInput = (groupInput: GroupType) => {
-  if (!groupInput.id || typeof groupInput.id !== 'number') {
+export const validateGroupInput = (
+  id: Number,
+  name: String,
+  description: String,
+  address: String,
+  collateral: Number,
+) => {
+  if (!id || typeof id !== 'number') {
     throw new Error('Invalid id')
   }
-  if (
-    !groupInput.name ||
-    typeof groupInput.name !== 'string' ||
-    groupInput.name.trim().length === 0
-  ) {
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
     throw new Error('Invalid name')
   }
 
   if (
-    !groupInput.description ||
-    typeof groupInput.description !== 'string' ||
-    groupInput.description.trim().length === 0
+    !description ||
+    typeof description !== 'string' ||
+    description.trim().length === 0
   ) {
     throw new Error('Invalid description')
   }
 
-  if (
-    !groupInput.address ||
-    typeof groupInput.address !== 'string' ||
-    groupInput.address.trim().length === 0
-  ) {
+  if (!address || typeof address !== 'string' || address.trim().length === 0) {
     throw new Error('Invalid address')
   }
 
-  if (!groupInput.collateral || typeof groupInput.collateral !== 'number') {
+  if (!collateral || typeof collateral !== 'number') {
     throw new Error('Invalid collateral')
   }
 }
@@ -238,10 +236,16 @@ export const validateStartContributionInput = (
   }
 }
 
-export const validateIsAdmin = async (group: any, address: String) => {
+export const validateIsAdmin = async (
+  groupDb: any,
+  id: Number,
+  address: String,
+) => {
   let isAdmin = false
   try {
-    if ((group.Admin = address)) {
+    const group = await groupDb.findGroupById(id)
+    if (!group) return console.log('Group not found')
+    if ((group.admin = address)) {
       isAdmin = true
     }
 
