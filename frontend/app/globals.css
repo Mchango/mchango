@@ -1,5 +1,6 @@
 /* @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap'); */
-@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -35,43 +36,43 @@
   }
 }
 .text-gra {
-  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #B09DDD 100%);
-background-clip: text;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-.builbtn-grad {
-  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #B09DDD 61.35%);
+  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #b09ddd 100%);
   background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;  
+  -webkit-text-fill-color: transparent;
+}
+.builbtn-grad {
+  background: radial-gradient(50% 50% at 50% 50%, #008080 0%, #b09ddd 61.35%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 :hover.smartbg {
   border-radius: 40px;
-background: linear-gradient(180deg, #107B88 0%, #6A63B6 100%);
+  background: linear-gradient(180deg, #107b88 0%, #6a63b6 100%);
 }
 .signupgate {
-  background: linear-gradient(91deg, #008080 26.57%, #C5AEFF 74.29%);
-background-clip: text;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
+  background: linear-gradient(91deg, #008080 26.57%, #c5aeff 74.29%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .signupbtn {
   border-radius: 15px;
-background: linear-gradient(180deg, #008080 0%, #7B5FBF 100%);
+  background: linear-gradient(180deg, #008080 0%, #7b5fbf 100%);
 }
 .signupbtn:hover {
   background: #008080;
 }
-.rocket{
+.rocket {
   border-radius: 17.947px;
-background: linear-gradient(237deg, #0A6B80 19.39%, #2F2180 83.13%);
+  background: linear-gradient(237deg, #0a6b80 19.39%, #2f2180 83.13%);
 }
 .loggedUser {
-box-shadow: 0px 18px 54px 0px rgba(0, 0, 0, 0.02);
+  box-shadow: 0px 18px 54px 0px rgba(0, 0, 0, 0.02);
 }
 .inp {
-  box-shadow: 0px 1px 7px 0px rgba(0, 0, 0, 0.09); 
+  box-shadow: 0px 1px 7px 0px rgba(0, 0, 0, 0.09);
 }
 .grpcard1 {
   border-radius: 16px;
@@ -80,11 +81,14 @@ box-shadow: 0px 18px 54px 0px rgba(0, 0, 0, 0.02);
 .grpcard2 {
   background: linear-gradient(66deg, #008080 0%, #400080 84.01%);
 }
-.grpbtnn{
+.grpbtnn {
   border-radius: 24px;
-background: linear-gradient(182deg, #0FF 1.66%, #A87BFF 144.64%);
+  background: linear-gradient(182deg, #0ff 1.66%, #a87bff 144.64%);
 }
 .chatcard {
   border-radius: 5px;
-background: var(--gradient, linear-gradient(66deg, #1566DF 0%, #21C5DB 84.01%));
+  background: var(
+    --gradient,
+    linear-gradient(66deg, #1566df 0%, #21c5db 84.01%)
+  );
 }
