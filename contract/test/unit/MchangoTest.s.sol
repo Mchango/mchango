@@ -44,7 +44,7 @@ contract MchangoTest is Script {
         vm.startBroadcast();
         DeployMchango deployMchango = new DeployMchango();
         vm.stopBroadcast();
-        mchango = deployMchango.run(User);
+        mchango = deployMchango.run();
         vm.deal(User, 100 ether);
         vm.deal(member1, 100 ether);
         vm.deal(member2, 100 ether);
@@ -62,15 +62,32 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
+    function testEnsureCreateGroupReturnsAnId() public createMember(member1) {
+        vm.startPrank(member1);
+        uint256 id = mchango.createGroup(member1, 1 ether, 0);
+        vm.stopPrank();
+
+        assert(id == 1);
+    }
+
     function createNewMember(address _newMember) internal {
         vm.startPrank(_newMember);
         mchango.createMember(_newMember);
     }
 
-    function testSuccessfulDeployment() public view {
-        address ownerAddress = mchango.Owner();
-        assert(ownerAddress == User);
+    function testEnsureCreateNewMemberReturnsAnId() public {
+        vm.startPrank(member1);
+        uint256 id = mchango.createMember(member1);
+        vm.stopPrank();
+
+        console.log("id: %s", id);
+        assert(id == 1);
     }
+
+    // function testSuccessfulDeployment() public view {
+    //     address ownerAddress = mchango.Owner();
+    //     assert(ownerAddress == User);
+    // }
 
     function testCreatesMemberSuccessfully() public createMember(member1) {
         bool isGroupMember = mchango.isMember(member1);
