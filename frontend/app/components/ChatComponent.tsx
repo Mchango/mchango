@@ -10,7 +10,7 @@ const ChatComponent = () => {
                 <div>
                     <ChatMessages />
                 </div>
-
+                <div className='w-[1px] h-[893px] bg-[#FFFFFF] mx-[30px] '></div>
             </div>
 
         </div>
