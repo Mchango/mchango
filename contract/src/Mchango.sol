@@ -95,10 +95,10 @@ contract Mchango {
     /**
      * @param _premiumFee this sets the fee for a premium subscription
      */
-    constructor(uint256 _premiumFee, address _owner) {
+    constructor(uint256 _premiumFee) {
         premiumFee = _premiumFee;
-        Owner = _owner;
-        isPremium[_owner] = true;
+        Owner = msg.sender;
+        isPremium[msg.sender] = true;
     }
 
     receive() external payable {}
