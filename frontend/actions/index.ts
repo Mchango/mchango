@@ -123,6 +123,7 @@ const GroupDB = {
 }
 
 /**state functions */
+/**state functions */
 const startContribution = async (
   startContributionInput: StartContributionType,
 ) => {
@@ -201,6 +202,48 @@ const startRotation = async (id: Number, address: String) => {
     return console.log(`${group.name} started rotation`)
   } catch (error) {
     return console.error('An error occurred while starting rotation', error)
+  }
+}
+
+const endRotation = async (group: any) => {
+  try {
+    for (let memberAddress in group.groupMembers) {
+      if (group.isEligibleMember.get(memberAddress)) {
+        const eligibleMembersIndex = group.eligibleMembers.indexOf(
+          memberAddress,
+        )
+        if (eligibleMembersIndex !== -1) {
+          group.eligibleMembers.splice(eligibleMembersIndex, 1)
+        }
+        group.isEligibleMember.delete(memberAddress)
+      }
+      const participantFlat = group.participants.flat()
+      const participant = participantFlat.find(
+        (p: FullParticipantType) => p.participantAddress === memberAddress,
+      )
+
+      if (participant) {
+        const participantIndex = group.participants.findIndex(
+          (participantArray: FullParticipantType[]) =>
+            participantArray.some(
+              (p) => p.participantAddress === memberAddress,
+            ),
+        )
+
+        if (participantIndex > -1) {
+          group.participants.splice(participantIndex, 1)
+          console.log('Successfully deleted participant')
+        }
+      }
+    }
+
+    group.contributionValue = 0
+    group.timer = 0
+    group.timeLimit = 0
+    group.currentState = 'initialization' as CurrentState
+    return console.log(`${group.name} ended rotation`)
+  } catch (error) {
+    return console.log('An error occurred while ending rotation', error)
   }
 }
 
@@ -825,23 +868,23 @@ const disburse = async (disburseInput: DeleteGroupType) => {
     )
 
     if (hasAllParticipantReceivedFunds) {
-      //? call end rotation
-      return console.log('All participants have received funds')
+      await endRotation(group)
+    } else {
+      group.timer = new Date().getTime()
+
+      await group.save()
+
+      return console.log(
+        `Successfully disbursed ${amountToDisburse} to ${member.name}`,
+      )
     }
-
-    group.timer = new Date().getTime()
-
-    await group.save()
-
-    return console.log(
-      `Successfully disbursed ${amountToDisburse} to ${member.name}`,
-    )
   } catch (error) {
     console.error('An error occurred while disbursing', error)
   }
 }
 
 /**utility functions */
+
 const penalize = async (group: any): Promise<void> => {
   try {
     const participantsFlat = group.participants.flat()
@@ -928,7 +971,7 @@ const handleRemoveMember = async (
   }
 }
 
-function removeMemberFromGroup(group: any, memberAddress: string): void {
+const removeMemberFromGroup = (group: any, memberAddress: string) => {
   const indexInEligible = group.eligibleMembers.indexOf(memberAddress)
   if (indexInEligible > -1) {
     group.eligibleMembers.splice(indexInEligible, 1)
@@ -955,7 +998,7 @@ function removeMemberFromGroup(group: any, memberAddress: string): void {
   }
 }
 
-async function decrementMemberReputation(member: any): Promise<void> {
+const decrementMemberReputation = async (member: any): Promise<void> => {
   member.reputation = Math.max(0, member.reputation - 1)
   await member.save()
 }
@@ -1183,10 +1226,10 @@ const handleRotateParticipant = async (id: Number) => {
     )
   }
 }
-
 export {
   startContribution,
   startRotation,
+  endRotation,
   subscribePremium,
   unSubscribePremium,
   getMember,
