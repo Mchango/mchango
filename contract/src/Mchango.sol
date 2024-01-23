@@ -283,15 +283,10 @@ contract Mchango {
      * @dev Refactored and made compatible with backend operations
      */
     function createGroup(
-        address _admin,
-        uint256 _collateralValue,
-        uint256 _numberOfCreatedGroups
-    ) external memberCompliance(_admin) returns (uint256 _id) {
-        if (!isSubscriberPremium(_admin)) {
-            if (_numberOfCreatedGroups >= 1) {
-                revert Mchango_UpgradeTier();
-            }
-        }
+        uint256 _collateralValue
+    ) external memberCompliance(msg.sender) returns (uint256 _id) {
+        address _admin = msg.sender;
+
         counter++;
         uint256 id = counter;
 
