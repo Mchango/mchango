@@ -115,4 +115,4 @@ const createNewGroup = async (
   }
 }
 
-export { createNewMember, createNewGroup }
+export { createNewMember, createNewGroup, getProviderAndSigner }
