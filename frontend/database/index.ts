@@ -336,22 +336,6 @@ const getMember = async (address: String) => {
   }
 }
 
-const getIsPremiumSubscriber = async (address: String) => {
-  try {
-    const isPremiumSubscriber = await validateIsPremiumSubscriber({
-      memberDB: MemberDB,
-      address: address,
-    })
-    if (isPremiumSubscriber) {
-      return console.log('Member is a premium subscriber')
-    } else {
-      return console.log('Member is not a premium subscriber')
-    }
-  } catch (error) {
-    return console.log('An error occurred while getting a member', error)
-  }
-}
-
 const getAllGroups = async () => {
   try {
     const groups = await Group.find({})
@@ -940,6 +924,20 @@ const penalize = async (group: any): Promise<void> => {
   }
 }
 
+const getIsPremiumSubscriber = async (address: String): Promise<Boolean> => {
+  let isPremiumSubscriber = false
+  try {
+    const member = await MemberDB.getMemberByAddress(address)
+    if (!member) throw new MemberNotFoundError('Member not found')
+
+    if (member.isPremiumSubscriber) isPremiumSubscriber = true
+    return isPremiumSubscriber
+  } catch (error) {
+    console.error('An error occurred while getting a member', error)
+    throw new Error('An error occurred while getting a member')
+  }
+}
+
 const handleRemoveMember = async (
   group: GroupType,
   memberAddress: string,
@@ -968,6 +966,33 @@ const handleRemoveMember = async (
   } catch (error) {
     console.error('An error occurred while removing member:', error)
     throw error
+  }
+}
+
+const handleGetNumberOfGroupsCreated = async (
+  memberAddress: string,
+): Promise<number> => {
+  if (
+    !memberAddress ||
+    typeof memberAddress !== 'string' ||
+    memberAddress.trim().length === 0
+  ) {
+    throw new Error('Invalid member address')
+  }
+
+  try {
+    const member = await MemberDB.getMemberByAddress(memberAddress)
+    if (!member) throw new MemberNotFoundError('Member not found')
+
+    const numberOfGroupsCreated = member.numberOfGroupsCreated || 0
+    return numberOfGroupsCreated
+  } catch (error) {
+    console.error(
+      'An error occurred while getting number of groups created',
+      error,
+    )
+    throw new Error('An error occurred while getting number of groups created')
+    return 0
   }
 }
 
@@ -1246,4 +1271,5 @@ export {
   updateContributionTimeLimit,
   penalize,
   disburse,
+  handleGetNumberOfGroupsCreated,
 }
