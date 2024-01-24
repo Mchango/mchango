@@ -53,6 +53,26 @@ export default function IconDetails() {
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
+      {
+        name: "Deanna Ademolaaaaaaaaaaa",
+        dateJoined: "23rd November, 1920",
+        svg: <ParticipantSVG />,
+      },
+      {
+        name: "Deanna Ademola",
+        dateJoined: "23rd November, 1920",
+        svg: <ParticipantSVG />,
+      },
+      {
+        name: "Deanna Ademola",
+        dateJoined: "23rd November, 1920",
+        svg: <ParticipantSVG />,
+      },
+      {
+        name: "Deanna Ademola",
+        dateJoined: "23rd November, 1920",
+        svg: <ParticipantSVG />,
+      },
     ],
   };
 }

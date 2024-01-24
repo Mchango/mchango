@@ -29,6 +29,7 @@ const config: Config = {
         purple: "#400080",
         backgroundblack: "#021D1D",
         sky: "var(--primary-100, #0FF);",
+        grey: "#7E92A2",
       },
     },
   },
