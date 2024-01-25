@@ -81,6 +81,13 @@ export type JoinGroupType = {
   collateralValue: Number
 }
 
+export type joinCreatedGroupType = {
+  id: number
+  amount: string
+  collateralValue: number
+  reputationPoint: number
+}
+
 export type GroupIdValidationType = {
   groupDB: any
   id: Number
