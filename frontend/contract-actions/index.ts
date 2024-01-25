@@ -17,7 +17,7 @@ class JoinGroupError extends Error {
 }
 
 const contractAddress =
-  process.env.CONTRACT_ADDRESS || '0xF4E3A013F4ae1328528d20a66AC6332757cd32A7'
+  process.env.CONTRACT_ADDRESS || '0x6216E99E1d39A9723f2756E839051c65d05736d4'
 
 const getProviderAndSigner = async () => {
   if (typeof window === 'undefined' || !(window as any).ethereum) {
@@ -181,4 +181,9 @@ const joinCreatedGroup = async ({
   }
 }
 
-export { createNewMember, createNewGroup, getProviderAndSigner }
+export {
+  createNewMember,
+  createNewGroup,
+  getProviderAndSigner,
+  joinCreatedGroup,
+}
