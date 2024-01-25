@@ -3,6 +3,7 @@ import whiteETH from "../assets/whiteETH.svg";
 import Image from "next/image";
 import tokensData from "../customerData.json";
 import CountTag from "./CountTag";
+import ContributeWeek from "./ContributeWeek";
 
 interface Token {
   recipientName: string;
@@ -50,7 +51,7 @@ export default function RecipientList() {
                   <td className="flex  pt-[30px] pb-4">
                     <Image src={whiteETH} alt="eth" className="" />
                     <div className="text-[15px] tracking-[0.15px] text-[#fff] ">
-                      {token.recipientAmount} Eth
+                      {token.recipientAmount} ETH
                     </div>
                   </td>
                 </tr>
@@ -58,6 +59,7 @@ export default function RecipientList() {
             </tbody>
           </table>
           <CountTag />
+          <ContributeWeek />
         </div>
       </div>
     </>
