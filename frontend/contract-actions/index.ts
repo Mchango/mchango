@@ -1,10 +1,18 @@
 import { ethers } from 'ethers'
 import { abi } from './abi'
+import type { joinCreatedGroupType } from '@/lib/types'
 
 class MetaMaskNotInstalledError extends Error {
   constructor() {
     super('MetaMask is not installed')
     this.name = 'MetaMaskNotInstalledError'
+  }
+}
+
+class JoinGroupError extends Error {
+  constructor() {
+    super('Join group failed')
+    this.name = 'JoinGroupError'
   }
 }
 
@@ -61,6 +69,40 @@ const createNewGroupWithSigner = async (
   return [formatted, numberFormat as number, signerAddress as string]
 }
 
+const joinGroupWithSigner = async (
+  signer: ethers.Signer,
+  { id, amount, collateralValue, reputationPoint }: joinCreatedGroupType,
+) => {
+  try {
+    const signerAddress = await signer.getAddress()
+    const contract = new ethers.Contract(contractAddress, abi, signer)
+
+    const result = valueFormatter(amount)
+    if (!result) throw new Error('Error parsing value')
+
+    const [formattedValue, numberFormat] = result
+    if (!formattedValue || !numberFormat) throw new Error('Error parsing value')
+
+    const formattedCollateralValue = BigInt(collateralValue)
+
+    const txResponse = await contract.joinGroup(
+      signerAddress,
+      id,
+      formattedCollateralValue,
+      reputationPoint,
+      {
+        value: formattedValue,
+      },
+    )
+
+    await txResponse.wait()
+    return `User ${signerAddress} joined group ${id} successfully`
+  } catch (error) {
+    console.error(`An error occurred: ${error}`)
+    throw new JoinGroupError()
+  }
+}
+
 const valueFormatter = (value: string) => {
   try {
     const formattedValue = ethers.utils.parseUnits(value, 'ether')
@@ -112,6 +154,30 @@ const createNewGroup = async (
     }
     console.error(`An error occurred: ${error}`)
     throw new Error('An error occurred while creating a new group')
+  }
+}
+
+const joinCreatedGroup = async ({
+  id,
+  amount,
+  collateralValue,
+  reputationPoint,
+}: joinCreatedGroupType) => {
+  try {
+    const { signer } = await getProviderAndSigner()
+    const result = await joinGroupWithSigner(signer, {
+      id,
+      amount,
+      collateralValue,
+      reputationPoint,
+    })
+    return result
+  } catch (error) {
+    if (error instanceof MetaMaskNotInstalledError) {
+      throw error
+    }
+    console.error(`An error occurred: ${error}`)
+    throw new Error('An error occurred while joining a group')
   }
 }
 
