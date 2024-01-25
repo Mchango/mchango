@@ -32,7 +32,7 @@ export default function MainComponent() {
           </article>
         </div>
       </section>
-      <section className="flex w-full space-x-20 justify-between my-12">
+      <section className="flex flex-col lg:flex-row w-full gap-10 lg:gap-20 justify-between my-12">
         <Participants />
         <Recipient />
       </section>

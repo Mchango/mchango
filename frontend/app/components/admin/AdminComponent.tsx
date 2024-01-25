@@ -21,7 +21,7 @@ export default function AdminComponent() {
 
 AdminComponent.SideBar = () => {
   return (
-    <aside className="w-[280px] bg-[#011717] border-r border-[#477A7A]/60 h-fit rounded-md p-4 space-y-10">
+    <aside className="hidden lg:block w-[280px] bg-[#011717] border-r border-[#477A7A]/60 h-fit rounded-md p-4 space-y-10">
       <div className="flex gap-2 mt-5">
         <Image
           src={mchlogo}

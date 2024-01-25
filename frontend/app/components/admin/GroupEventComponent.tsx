@@ -18,17 +18,17 @@ GroupEventComponent.List = () => {
   return (
     <article className="text-sm">
       <div className="w-full bg-[#345A5A] uppercase flex justify-between mt-5 py-3 px-5 rounded-lg shadow">
-        <span className="w-4/5">Operation</span>
-        <span className="w-2/5">ID</span>
-        <span className="w-2/5">Date And Time</span>
-        <span className="w-1/5">Block</span>
+        <span className="w-full lg:w-4/5">Operation</span>
+        <span className="hidden lg:block w-2/5">ID</span>
+        <span className="hidden lg:block w-2/5">Date And Time</span>
+        <span className="w-full lg:w-1/5">Block</span>
       </div>
       {GroupEventComponent.Data.map((item) => (
-        <div key={item.index} className="w-full flex justify-between py-3 px-5 text-white/50 border-white/50 shadow">
-          <span className="w-4/5">{item.operation}</span>
-          <span className="w-2/5">{item.id}</span>
-          <span className="w-2/5">{item.date}</span>
-          <span className="w-1/5">{item.block}</span>
+        <div key={item.index} className="w-full flex gap-5 lg:gap-0 justify-between py-3 px-5 text-white/50 border-white/50 shadow">
+          <span className="w-full lg:flex lg:flex-wrap lg:w-4/5">{item.operation}</span>
+          <span className="hidden lg:block w-2/5">{item.id}</span>
+          <span className="hidden lg:block w-2/5">{item.date}</span>
+          <span className="w-full lg:flex lg:flex-wrap lg:w-1/5">{item.block}</span>
         </div>
       ))}
     </article>

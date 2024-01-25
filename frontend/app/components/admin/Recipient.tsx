@@ -6,7 +6,7 @@ import { div } from "three/examples/jsm/nodes/Nodes.js";
 export default function Recipient() {
   return (
     <div className="w-full">
-      <h3 className="text-[#00FFFF] text-lg">Recipient List</h3>
+      <h3 className="text-[#00FFFF] text-2xl">Recipient List</h3>
       <Recipient.List />
     </div>
   );
@@ -18,18 +18,18 @@ Recipient.List = () => {
   return (
     <section className="w-full text-sm">
       <div className="flex uppercase justify-between px-5 py-2 mt-5 rounded-lg bg-[#345A5A] text-white">
-        <span>Recipient Name</span>
-        <span>Next Receiving Day</span>
-        <span>Amount</span>
+        <span className="w-[40%]">Recipient Name</span>
+        <span className="w-[40%]">Next Receiving Day</span>
+        <span className="w-[20%]">Amount</span>
       </div>
       {Recipient.Data.map((item, i) => (
         <div
           key={i}
-          className="flex justify-between px-5 py-2 border-b border-white/50 text-white/50"
+          className="flex justify-between px-5 py-3 text-white/50"
         >
-          <span>{item.name}</span>
-          <span>{item.next_receiving_day}</span>
-          <span>{item.amount}</span>
+          <span className="w-[40%]">{item.name}</span>
+          <span className="w-[40%]">{item.next_receiving_day}</span>
+          <span className="w-[20%]">{item.amount}</span>
         </div>
       ))}
       <Recipient.Card />
