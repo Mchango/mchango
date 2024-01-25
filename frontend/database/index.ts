@@ -1251,6 +1251,51 @@ const handleRotateParticipant = async (id: Number) => {
     )
   }
 }
+
+const handleGetMemberReputationPoint = async (
+  address: string,
+): Promise<number> => {
+  if (!address || typeof address !== 'string')
+    throw new Error('Invalid address')
+  try {
+    const member = await MemberDB.getMemberByAddress(address)
+    if (!member) throw new MemberNotFoundError('Member not found')
+
+    const reputationPoint: number = member.reputation
+    if (!reputationPoint) {
+      return 0
+    }
+    console.log('reputationPoint', reputationPoint)
+    return reputationPoint
+  } catch (error) {
+    console.error(
+      "An error occurred while getting member's reputation point",
+      error,
+    )
+    throw new Error('An error occurred while getting member reputation point')
+  }
+}
+
+const handleGetGroupCollateralValue = async (id: number): Promise<number> => {
+  if (!id || typeof id !== 'number') throw new Error('Invalid group id')
+  try {
+    const group = await GroupDB.findGroupById(id)
+    if (!group) throw new GroupNotFoundError('Group not found')
+
+    const collateralValue: number = group.collateral
+    if (!collateralValue) {
+      return 0
+    }
+    console.log('collateralValue', collateralValue)
+    return collateralValue
+  } catch (error) {
+    console.error(
+      'An error occurred while getting group collateral value',
+      error,
+    )
+    throw new Error('An error occurred while getting group collateral value')
+  }
+}
 export {
   startContribution,
   startRotation,
@@ -1272,4 +1317,6 @@ export {
   penalize,
   disburse,
   handleGetNumberOfGroupsCreated,
+  handleGetGroupCollateralValue,
+  handleGetMemberReputationPoint,
 }
