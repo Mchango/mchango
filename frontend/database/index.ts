@@ -33,17 +33,6 @@ import {
 
 const PREMIUM_FEE = 0.5 as Number
 
-/**Custom errors */
-class ContributionTimeError extends Error {}
-class MemberNotFoundError extends Error {}
-class MemberAlreadyExistsError extends Error {}
-class ParticipantNotFoundError extends Error {}
-class GroupNotFoundError extends Error {}
-class ParticipantNotEligibleError extends Error {}
-class AdminError extends Error {}
-class GroupStateError extends Error {}
-class SubscriptionError extends Error {}
-
 /**Database functions */
 const MemberDB = {
   getMemberByAddress: async (address: String) => {
@@ -138,7 +127,7 @@ const startContribution = async (
         startContributionInput.address,
       ))
     ) {
-      throw new AdminError("You don't have admin privileges")
+      throw new AdminError()
     }
 
     const contributionValue = await getAverageCollateralValue({
@@ -164,7 +153,8 @@ const startContribution = async (
       `${group.name} started contribution, contribution value: ${contributionValue}`,
     )
   } catch (error) {
-    return console.error('An error occurred while starting contribution', error)
+    console.error('An error occurred while starting contribution', error)
+    throw new StartContributionError()
   }
 }
 
@@ -201,7 +191,8 @@ const startRotation = async (id: Number, address: String) => {
 
     return console.log(`${group.name} started rotation`)
   } catch (error) {
-    return console.error('An error occurred while starting rotation', error)
+    console.error('An error occurred while starting rotation', error)
+    throw new StartRotationError()
   }
 }
 
@@ -243,7 +234,8 @@ const endRotation = async (group: any) => {
     group.currentState = 'initialization' as CurrentState
     return console.log(`${group.name} ended rotation`)
   } catch (error) {
-    return console.log('An error occurred while ending rotation', error)
+    console.log('An error occurred while ending rotation', error)
+    throw new EndRotationError()
   }
 }
 
@@ -277,9 +269,10 @@ const subscribePremium = async (input: PremiumType) => {
     member.isPremiumSubscriber = true
     member.subscriptionStartTime = new Date()
     await member.save()
-    return console.log('Member subscribed to premium')
+    return 'Member subscribed to premium'
   } catch (error) {
-    return console.log('An error occurred while subscribing a member', error)
+    console.log('An error occurred while subscribing a member', error)
+    throw new SubscriptionError()
   }
 }
 
@@ -316,9 +309,10 @@ const unSubscribePremium = async (address: String) => {
       throw new Error('Subscription is not expired')
     }
     await member.save()
-    return console.log('Subscription expired')
+    return 'Subscription Expired'
   } catch (error) {
     console.error('An error occurred while unsubscribing a member', error)
+    throw new UnsubscribeError()
   }
 }
 
@@ -326,23 +320,22 @@ const unSubscribePremium = async (address: String) => {
 const getMember = async (address: String) => {
   try {
     const member = await MemberDB.getMemberByAddress(address)
-    if (member) {
-      return console.log(member)
-    } else {
-      return console.log('Member not found')
-    }
+    if (!member) throw new MemberNotFoundError()
+    return member
   } catch (error) {
-    return console.log('An error occurred while getting a member', error)
+    console.error('An error occurred while getting a member', error)
+    throw new GetMemberError()
   }
 }
 
 const getAllGroups = async () => {
   try {
     const groups = await Group.find({})
-    if (!groups) throw new GroupNotFoundError('Group not found')
-    return console.log(groups)
+    if (!groups) throw new GroupNotFoundError()
+    return groups
   } catch (error) {
-    return console.log('An error occurred while getting all groups', error)
+    console.error('An error occurred while getting all groups', error)
+    throw new GetAllGroupsError()
   }
 }
 
@@ -363,7 +356,7 @@ const getParticipantData = async (
     if (!memberFound) throw new MemberNotFoundError('Member not found')
 
     const group = await GroupDB.findAndUpdateGroup(participantInput.id)
-    if (!group) throw new GroupNotFoundError('Group not found')
+    if (!group) throw new GroupNotFoundError()
 
     const participantFlat = group.participant.flat()
 
@@ -376,9 +369,10 @@ const getParticipantData = async (
     if (!participant)
       throw new ParticipantNotFoundError('Participant not found')
 
-    return console.log(participant)
+    return participant
   } catch (error) {
-    return console.log('An error occurred while getting a participant', error)
+    console.error('An error occurred while getting a participant', error)
+    throw new ParticipantNotFoundError()
   }
 }
 
@@ -395,7 +389,7 @@ const getAverageCollateralValue = async (collateralInput: DeleteGroupType) => {
         collateralInput.address,
       ))
     )
-      throw new AdminError('You are not an admin')
+      throw new AdminError()
 
     let sumOfCollateral = 0
 
@@ -409,7 +403,6 @@ const getAverageCollateralValue = async (collateralInput: DeleteGroupType) => {
     if (sumOfCollateral === 0 || isNaN(sumOfCollateral)) {
       return console.log('No collateral value found')
     }
-    console.log(sumOfCollateral)
     const averageCollateralValue = sumOfCollateral / group.groupMembers.length
 
     return averageCollateralValue
@@ -418,17 +411,8 @@ const getAverageCollateralValue = async (collateralInput: DeleteGroupType) => {
       'An error occurred while getting the average collateral value',
       error,
     )
-  }
-}
 
-const getCollateralValue = async (id: Number, address: String) => {
-  const group = await GroupDB.findGroupById(id)
-
-  try {
-    const collateralValue = group.collateralTracking.get(address)
-    console.log(collateralValue)
-  } catch (error) {
-    console.error('An error occurred while getting the collateral value', error)
+    throw new CalculateAverageCollateralError()
   }
 }
 
@@ -450,9 +434,10 @@ const createMember = async (member: CreateMemberType) => {
     const newMember = await MemberDB.createMember(member)
     await newMember.save()
 
-    return console.log('Member created')
+    return 'Member created'
   } catch (error) {
     console.error('An error occurred while creating a member', error)
+    throw new CreateMemberError()
   }
 }
 
@@ -478,26 +463,32 @@ const updateMemberProfilePicture = async (
       'An error occurred while updating a member profile picture',
       error,
     )
+    throw new UpdateProfilePictureError()
   }
 }
 
 const createNewParticipant = async (participant: ParticipantType) => {
-  const newParticipant = {
-    name: participant.name,
-    participantAddress: participant.participantAddress,
-    amountDonated: participant.amountDonated ? participant.amountDonated : 0,
-    amountCollected: 0,
-    timeStamp: new Date(),
-    isBanned: false,
-    isEligible: true,
-    hasReceivedFunds: false,
-    hasDonated: true,
-    reputation: 1,
+  try {
+    const newParticipant = {
+      name: participant.name,
+      participantAddress: participant.participantAddress,
+      amountDonated: participant.amountDonated ? participant.amountDonated : 0,
+      amountCollected: 0,
+      timeStamp: new Date(),
+      isBanned: false,
+      isEligible: true,
+      hasReceivedFunds: false,
+      hasDonated: true,
+      reputation: 1,
+    }
+
+    participant.group.participants.push(newParticipant)
+
+    await participant.group.save()
+  } catch (error) {
+    console.error('An error occurred while creating a new participant', error)
+    throw new ParticipantCreationError()
   }
-
-  participant.group.participants.push(newParticipant)
-
-  await participant.group.save()
 }
 
 const createGroup = async (group: GroupType) => {
@@ -549,7 +540,8 @@ const createGroup = async (group: GroupType) => {
 
     return console.log('Group created')
   } catch (error) {
-    return console.error('An error occurred while creating a group', error)
+    console.error('An error occurred while creating a group', error)
+    throw new GroupCreationError()
   }
 }
 
@@ -571,8 +563,7 @@ const updateGroupProfilePicture = async (
     if (!group) throw new GroupNotFoundError('Group not found')
     if (!member) throw new MemberNotFoundError('Member not found')
 
-    if (member.memberAddress !== group.admin)
-      throw new AdminError('You are not the admin of this group')
+    if (member.memberAddress !== group.admin) throw new AdminError()
 
     group.profilePicture = profilePicture
 
@@ -584,6 +575,8 @@ const updateGroupProfilePicture = async (
       'An error occurred while updating a group profile picture',
       error,
     )
+
+    throw new UpdateProfilePictureError()
   }
 }
 
@@ -602,7 +595,7 @@ const deleteGroup = async (groupInput: DeleteGroupType) => {
     }
 
     if (admin.memberAddress !== groupInput.address) {
-      throw new AdminError('You are not the admin of this group')
+      throw new AdminError()
     }
 
     await GroupDB.removeGroup(groupInput.id)
@@ -1095,7 +1088,7 @@ const updateContributionTimeLimit = async (
       admin,
     )
     if (!isGroupAdmin) {
-      throw new AdminError('Not admin of this group')
+      throw new AdminError()
     }
 
     group.timeLimit = newTimeLimit
