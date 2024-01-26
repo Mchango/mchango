@@ -2,16 +2,20 @@ import { connectDB } from '@/database/mongoose'
 import {
   createMember,
   createGroup,
+  joinGroup,
   handleGetNumberOfGroupsCreated,
   getIsPremiumSubscriber,
+  handleGetGroupCollateralValue,
+  handleGetMemberReputationPoint,
 } from '@/database'
 import {
   createNewGroup,
   createNewMember,
   getProviderAndSigner,
+  valueFormatter,
 } from '@/contract-actions'
-
-class MetaMaskError extends Error {}
+import { joinCreatedGroup } from '@/contract-actions'
+import { joinCreatedGroupType } from '@/lib/types'
 
 const createUser = async (name: string) => {
   await connectDB()
@@ -35,7 +39,7 @@ const createUser = async (name: string) => {
       throw new Error('An error occurred while creating new member')
     }
   } else {
-    throw new MetaMaskError('MetaMask is not installed')
+    throw new MetaMaskError()
   }
 }
 
@@ -82,6 +86,87 @@ const createUserGroup = async (
   } catch (error) {
     console.error('An error occurred while creating a new group', error)
     throw new Error('An error occurred while creating a new group')
+  }
+}
+
+const validateReputationAndCollateral = async (
+  id: number,
+  amount: string,
+): Promise<[number, boolean, number, number, Number, string]> => {
+  try {
+    let isValidated = false
+    const { signer } = await getProviderAndSigner()
+    const walletAddress = await signer.getAddress()
+    const reputationPoint: number = await handleGetMemberReputationPoint(
+      walletAddress as string,
+    )
+
+    const result = valueFormatter(amount)
+    if (!result) throw new Error('Error parsing value')
+    const [formattedValue, numberFormat] = result
+
+    if (reputationPoint < 1)
+      throw new ReputationError(
+        'You need to have reputation above 0 point to join a group',
+      )
+
+    const collateralValue: number = await handleGetGroupCollateralValue(id)
+    const formattedCollateralValue = Number(collateralValue.toString())
+    if (!formattedCollateralValue) throw new Error('Invalid collateral value')
+
+    if (numberFormat != collateralValue) {
+      throw new Error('Collateral value does not match with the amount')
+    }
+    isValidated = true
+    return [
+      collateralValue,
+      isValidated,
+      reputationPoint,
+      numberFormat,
+      formattedCollateralValue,
+      walletAddress,
+    ]
+  } catch (error) {
+    console.error('An error occurred while validating reputation', error)
+    throw new Error('An error occurred while validating reputation')
+  }
+}
+
+const joinUserGroup = async (id: number, amount: string) => {
+  if (!id || typeof id !== 'number') throw new Error('Invalid id')
+  try {
+    await connectDB()
+    const [
+      collateralValue,
+      isValidated,
+      reputationPoint,
+      numberFormat,
+      formattedCollateralValue,
+      walletAddress,
+    ] = await validateReputationAndCollateral(id, amount)
+
+    if (!isValidated) throw new Error('Invalid reputation point')
+    if (collateralValue == 0) throw new Error('Invalid collateral value')
+
+    await joinCreatedGroup({
+      id: id as number,
+      amount: amount,
+      collateralValue: collateralValue,
+      reputationPoint: reputationPoint,
+    })
+
+    await joinGroup({
+      id: id as number,
+      address: walletAddress as string,
+      collateralValue: formattedCollateralValue,
+    })
+
+    return console.log(
+      `User joined group ${id} with a reputation of ${reputationPoint}`,
+    )
+  } catch (error) {
+    console.error('An error occurred while joining a group', error)
+    throw new JoinGroupError()
   }
 }
 
