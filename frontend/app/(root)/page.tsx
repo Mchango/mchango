@@ -6,6 +6,7 @@ import SmartCrypto from '../components/SmartCrypto';
 
 /**
  * todo: work on the responsivnes of the landing page
+ * todo: mobile view has been added to the figma file
  */
 
 const Landing = () => {
