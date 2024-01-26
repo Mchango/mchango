@@ -6,6 +6,10 @@ type Props = {
   children: React.ReactNode;
 };
 
+/**
+ * @dev this function enables animation on page navigation
+ */
+
 const Template = ({ children }: Props) => {
   return (
     <motion.div
