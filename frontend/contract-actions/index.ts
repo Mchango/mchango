@@ -2,20 +2,6 @@ import { ethers } from 'ethers'
 import { abi } from './abi'
 import type { joinCreatedGroupType } from '@/lib/types'
 
-class MetaMaskNotInstalledError extends Error {
-  constructor() {
-    super('MetaMask is not installed')
-    this.name = 'MetaMaskNotInstalledError'
-  }
-}
-
-class JoinGroupError extends Error {
-  constructor() {
-    super('Join group failed')
-    this.name = 'JoinGroupError'
-  }
-}
-
 const contractAddress =
   process.env.CONTRACT_ADDRESS || '0x6216E99E1d39A9723f2756E839051c65d05736d4'
 
@@ -186,4 +172,5 @@ export {
   createNewGroup,
   getProviderAndSigner,
   joinCreatedGroup,
+  valueFormatter,
 }
