@@ -58,13 +58,13 @@ contract MchangoTest is Script {
 
     function createGroup() internal createMember(member1) {
         vm.startPrank(member1);
-        mchango.createGroup(member1, 1 ether, 0);
+        mchango.createGroup(1 ether);
         vm.stopPrank();
     }
 
     function testEnsureCreateGroupReturnsAnId() public createMember(member1) {
         vm.startPrank(member1);
-        uint256 id = mchango.createGroup(member1, 1 ether, 0);
+        uint256 id = mchango.createGroup(1 ether);
         vm.stopPrank();
 
         assert(id == 1);
@@ -204,7 +204,7 @@ contract MchangoTest is Script {
     function testEnsureCreateGroupShouldRevertIfNotAMember() public {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
         vm.prank(member1);
-        mchango.createGroup(member1, 2 ether, 0);
+        mchango.createGroup(2 ether);
     }
 
     function testEnsureIfNonPremiumMemberTriesToCreateMoreThan1Group()
@@ -213,7 +213,7 @@ contract MchangoTest is Script {
     {
         vm.expectRevert(Mchango.Mchango_UpgradeTier.selector);
         vm.prank(member1);
-        mchango.createGroup(member1, 2 ether, 1);
+        mchango.createGroup(2 ether);
     }
 
     function testPremiumSubscribersCanCreateMoreThanASingleGroup()
@@ -222,12 +222,12 @@ contract MchangoTest is Script {
     {
         vm.prank(member1);
         mchango.subscribePremium{value: PREMIUM_FEE}();
-        mchango.createGroup(member1, 2 ether, 2);
+        mchango.createGroup(2 ether);
     }
 
     function testCreatesGroupSuccessfully() public createMember(member1) {
         vm.prank(member1);
-        mchango.createGroup(member1, 2 ether, 0);
+        mchango.createGroup(2 ether);
         Mchango.State groupState = Mchango.State.initialization;
         (
             uint256 _collateralValue,
@@ -253,7 +253,7 @@ contract MchangoTest is Script {
         emit hasCreatedGroup(member1, 1);
 
         vm.prank(member1);
-        mchango.createGroup(member1, 2 ether, 0);
+        mchango.createGroup(2 ether);
     }
 
     function testEnsureRevertsIfNotAGroupMemberJoinsAGroup()
@@ -261,7 +261,7 @@ contract MchangoTest is Script {
         createMember(member1)
     {
         vm.startPrank(member1);
-        mchango.createGroup(member1, 2 ether, 0);
+        mchango.createGroup(2 ether);
         vm.stopPrank();
 
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);

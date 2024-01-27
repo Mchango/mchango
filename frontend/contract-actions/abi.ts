@@ -1,0 +1,530 @@
+export const abi = [
+  {
+    type: 'constructor',
+    inputs: [{ name: '_premiumFee', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  { type: 'receive', stateMutability: 'payable' },
+  {
+    type: 'function',
+    name: 'Owner',
+    inputs: [],
+    outputs: [{ name: '', type: 'address', internalType: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'checkIsEligibleMember',
+    inputs: [
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_memberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'checkIsGroupMember',
+    inputs: [
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_memberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'contribute',
+    inputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'counter',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'createGroup',
+    inputs: [
+      { name: '_admin', type: 'address', internalType: 'address' },
+      {
+        name: '_collateralValue',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_numberOfCreatedGroups',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'createMember',
+    inputs: [{ name: '_address', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'disburse',
+    inputs: [
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      { name: '_amount', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_memberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'endRotation',
+    inputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'exclusiveFee',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getGroupDetails',
+    inputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    outputs: [
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'address', internalType: 'address' },
+      { name: '', type: 'uint8', internalType: 'enum Mchango.State' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'isMember',
+    inputs: [{ name: '', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'isSubscriberPremium',
+    inputs: [{ name: '_address', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'joinGroup',
+    inputs: [
+      {
+        name: '_memberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_groupCollateralValue',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_reputationPoint',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'kickGroupMember',
+    inputs: [
+      {
+        name: '_groupMemberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'memberCounter',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'penalize',
+    inputs: [
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_contributionValue',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_memberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'premiumFee',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'returnMemberDetails',
+    inputs: [{ name: '_address', type: 'address', internalType: 'address' }],
+    outputs: [
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'uint256', internalType: 'uint256' },
+      { name: '', type: 'address', internalType: 'address' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'setPremiumFee',
+    inputs: [{ name: '_fee', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'startContribution',
+    inputs: [
+      { name: '_id', type: 'uint256', internalType: 'uint256' },
+      {
+        name: '_contributionValue',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'startRotation',
+    inputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'subscribePremium',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'unSubscribePremiumMember',
+    inputs: [
+      {
+        name: '_subscriberAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    name: 'hasCreatedGroup',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'hasDonated',
+    inputs: [
+      {
+        name: '_participant',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_amount',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'hasReceivedFunds',
+    inputs: [
+      {
+        name: '_participant',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_amount',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'hasSubscribed',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_subscriptionAmount',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'inContributionPhase',
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'inRotationPhase',
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'joinedGroup',
+    inputs: [
+      {
+        name: '_participant',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'memberCreated',
+    inputs: [
+      {
+        name: 'member',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'memberKicked',
+    inputs: [
+      {
+        name: '_memberAddress',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'participantVerdicit',
+    inputs: [
+      {
+        name: '_isBanned',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+      {
+        name: '_participant',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'premiumFeeUpdated',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: '_fee',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'rotationEnded',
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'subscriptionExpired',
+    inputs: [
+      {
+        name: '_subscriber',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  { type: 'error', name: 'Mchango_AlreadyAMember', inputs: [] },
+  {
+    type: 'error',
+    name: 'Mchango_AlreadyAPremiumSubscriber',
+    inputs: [],
+  },
+  { type: 'error', name: 'Mchango_BlankCompliance', inputs: [] },
+  { type: 'error', name: 'Mchango_GroupDoesntExist', inputs: [] },
+  {
+    type: 'error',
+    name: 'Mchango_GroupStateError',
+    inputs: [
+      {
+        name: 'currentState',
+        type: 'uint8',
+        internalType: 'enum Mchango.State',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'Mchango_InsufficientAmountForPremiumService',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'Mchango_InsufficientContributionAmount',
+    inputs: [],
+  },
+  { type: 'error', name: 'Mchango_MaxMembersReached', inputs: [] },
+  { type: 'error', name: 'Mchango_NotAGroupMember', inputs: [] },
+  { type: 'error', name: 'Mchango_NotAMember', inputs: [] },
+  { type: 'error', name: 'Mchango_NotAPremiumSubscriber', inputs: [] },
+  { type: 'error', name: 'Mchango_NotAllFundsDisbursed', inputs: [] },
+  { type: 'error', name: 'Mchango_NotAnEligibleMember', inputs: [] },
+  { type: 'error', name: 'Mchango_NotEnoughCollateral', inputs: [] },
+  { type: 'error', name: 'Mchango_NotEnoughReputation', inputs: [] },
+  { type: 'error', name: 'Mchango_TransactionFailed', inputs: [] },
+  { type: 'error', name: 'Mchango_UpgradeTier', inputs: [] },
+  {
+    type: 'error',
+    name: 'Mchango__GroupAlreadyInContributionState',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'Mchango__GroupAlreadyInRotationState',
+    inputs: [],
+  },
+]
