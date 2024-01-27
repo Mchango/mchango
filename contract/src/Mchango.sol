@@ -85,7 +85,7 @@ contract Mchango {
         address indexed _participant,
         uint256 indexed _amount
     );
-    event participantVerdicit(bool _isBanned, address indexed _participant);
+    event participantVerdict(bool _isBanned, address indexed _participant);
     event hasSubscribed(
         address indexed _address,
         uint256 indexed _subscriptionAmount
