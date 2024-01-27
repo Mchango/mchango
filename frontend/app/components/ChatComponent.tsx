@@ -1,5 +1,6 @@
 import React from 'react'
 import ChatMessages from './ChatMessages'
+import GroupChat from './GroupChat'
 
 const ChatComponent = () => {
   return (
@@ -11,6 +12,7 @@ const ChatComponent = () => {
                     <ChatMessages />
                 </div>
                 <div className='w-[1px] h-[893px] bg-[#FFFFFF] mx-[30px] '></div>
+                <GroupChat />
             </div>
 
         </div>
