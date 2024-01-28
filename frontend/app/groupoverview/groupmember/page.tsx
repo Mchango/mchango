@@ -6,14 +6,14 @@ import GroupEvents from "@/app/components/GroupEvents";
 
 export default function GroupMember() {
   return (
-    <div className="flex  flex-col gap-[70px] w-full">
+    <div className="flex  flex-col gap-[70px] w-full pb-[89px]">
       <GroupNameLogo />
 
       <div className="w-full flex justify-between gap-[60px]">
         <ParticipantListTable />
         <RecipientList />
       </div>
-      <GroupEvents />
+      <GroupEvents green={true} />
     </div>
   );
 }
