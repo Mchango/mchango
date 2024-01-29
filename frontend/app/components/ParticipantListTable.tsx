@@ -1,22 +1,20 @@
 import React from "react";
-import personSvg from "../svgComponents/personSvg";
-// import data from "../data.json";
+// import personSvg from "../svgComponents/personSvg";
 import IconDetails from "./iconDetails";
-// import ParticipantSVG from "../svgComponents/ParticipantSVG";
 import PersonSvg from "../svgComponents/personSvg";
 import LeftArrowSvg from "../svgComponents/leftArrowSvg";
 import RightArrowSvg from "../svgComponents/rightArrowSvg";
+import CountTag from "./CountTag";
 
-// interface Token {
-//   participantName: string;
-//   participantDate: string;
-//   participantSVG: string;
-// }
-export default function ParticipantListTable() {
+interface CountTag {
+  count: boolean;
+}
+
+export default function ParticipantListTable(props: CountTag): JSX.Element {
   //   const tokens: Token[] = data;
   return (
     <div className="flex w-full flex-col">
-      <p className="text-sky font-nunito text-2xl font-bold not-italic">
+      <p className="text-sky font-nunito text-3xl font-bold not-italic">
         Participants list
       </p>
       <table className="w-full  text-sm text-left rtl:text-right text-[#FFFFFF]">
@@ -67,6 +65,7 @@ export default function ParticipantListTable() {
           <RightArrowSvg />
         </div>
       </div>
+      {props.count && <CountTag />}
     </div>
   );
 }

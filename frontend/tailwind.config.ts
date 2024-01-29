@@ -33,6 +33,7 @@ const config: Config = {
         purpleTag: "#D1B9FF",
         purpleSmallDeep: "#A87BFF",
         offWhite: "#F1F1F1",
+        deepGreen: "#098787",
       },
     },
   },
