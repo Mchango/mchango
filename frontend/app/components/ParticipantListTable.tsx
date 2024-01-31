@@ -5,9 +5,11 @@ import PersonSvg from "../svgComponents/personSvg";
 import LeftArrowSvg from "../svgComponents/leftArrowSvg";
 import RightArrowSvg from "../svgComponents/rightArrowSvg";
 import CountTag from "./CountTag";
+import Options from "../components/Options";
 
 interface CountTag {
   count: boolean;
+  admin: boolean;
 }
 
 export default function ParticipantListTable(props: CountTag): JSX.Element {
@@ -50,6 +52,11 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
               <td className="text-white font-normal not-italic font-nunito  text-base">
                 {item.dateJoined}
               </td>
+              {props.admin && (
+                <td className="w-[100px]">
+                  <Options />
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

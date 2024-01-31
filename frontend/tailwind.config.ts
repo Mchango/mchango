@@ -34,6 +34,7 @@ const config: Config = {
         purpleSmallDeep: "#A87BFF",
         offWhite: "#F1F1F1",
         deepGreen: "#098787",
+        redBtn: "#FA0909",
       },
     },
   },

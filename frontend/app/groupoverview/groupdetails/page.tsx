@@ -11,7 +11,7 @@ export default function GroupDetails() {
 
       <div className="w-full flex justify-between gap-[60px]">
         <GroupDescription />
-        <ParticipantListTable count={true} />
+        <ParticipantListTable count={true} admin={false} />
       </div>
       <GroupEvents green={false} />
     </div>

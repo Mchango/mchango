@@ -10,7 +10,7 @@ export default function GroupMember() {
       <GroupNameLogo />
 
       <div className="w-full flex justify-between gap-[60px]">
-        <ParticipantListTable count={false} />
+        <ParticipantListTable count={false} admin={false} />
         <RecipientList />
       </div>
       <GroupEvents green={true} />
