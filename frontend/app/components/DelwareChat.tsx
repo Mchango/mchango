@@ -105,7 +105,7 @@ const DelwareChat = () => {
                         </div>
                     </div>
                     <div>
-                        <input placeholder='Type a message' className='w-[605px] h-[40px] rounded-[20px] pl-[8px] text-[#00000] '/>
+                        <input placeholder='Type a message' className='w-[605px] h-[40px] rounded-[20px] pl-[8px] text-[#171C1B] '/>
                     </div>
                 </div>
             ))}
