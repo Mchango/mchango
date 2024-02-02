@@ -2,6 +2,7 @@ import React from 'react';
 import tokensData from '../data.json';
 import Image from 'next/image';
 import add from '../assets/add.svg'
+import DelwareChat from './DelwareChat';
 
 interface Token {
     delaremebers: number;
@@ -31,6 +32,8 @@ const GrpChatHeading = () => {
             </div>
         </div>
         <hr className='mt-[8px] mb-[23px] '/>
+        
+        <DelwareChat />
         </div>
 
     </div>
