@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 // import personSvg from "../svgComponents/personSvg";
 import IconDetails from "./iconDetails";
 import PersonSvg from "../svgComponents/personSvg";
@@ -12,7 +13,20 @@ interface CountTag {
   admin: boolean;
 }
 
+interface popUpType {
+  [key: string]: boolean;
+}
 export default function ParticipantListTable(props: CountTag): JSX.Element {
+  const [isOptionsOpen, setIsOptionsOpen] = useState<popUpType>({});
+
+  const handleOptions = (index: any) => {
+    // setIsOptionsOpen(!isOptionsOpen);
+    setIsOptionsOpen((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
+  };
+
   //   const tokens: Token[] = data;
   return (
     <div className="flex w-full flex-col">
@@ -53,8 +67,22 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
                 {item.dateJoined}
               </td>
               {props.admin && (
-                <td className="w-[100px]">
-                  <Options />
+                <td className="w-[100px] ">
+                  {
+                    <div onClick={() => handleOptions(item.id.toString())}>
+                      <Options />
+                      {isOptionsOpen[item.id.toString()] && (
+                        <div className="flex flex-col  gap-1 absolute w-[150px]">
+                          <div className="px-[4px] py-[5px] bg-redBtn rounded-[2px] items-center">
+                            <h2>Remove member</h2>
+                          </div>
+                          <div className="px-[4px] py-[5px] bg-purpleSmallDeep rounded-[2px] items-center">
+                            <h2>Message member</h2>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  }
                 </td>
               )}
             </tr>

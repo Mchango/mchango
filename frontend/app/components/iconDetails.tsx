@@ -24,51 +24,61 @@ export default function IconDetails() {
     ],
     participants: [
       {
+        id: 1,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 2,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 3,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 4,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 5,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 6,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 7,
         name: "Deanna Ademolaaaaaaaaaaa",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 8,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 9,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
       },
       {
+        id: 10,
         name: "Deanna Ademola",
         dateJoined: "23rd November, 1920",
         svg: <ParticipantSVG />,
