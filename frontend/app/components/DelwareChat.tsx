@@ -94,6 +94,19 @@ const DelwareChat = () => {
                             <div className='text-[15px] leading-[24px] font-light lg:w-[564px] '>{token.delchat2}</div>
                         </div>
                     </div>
+                    <div className='flex my-[41px] '>
+                        <Image src={deset} alt='profile-img' className='my-auto ' />
+                        <div className='ml-[12px] '>
+                            <div className='flex'>
+                                <div className='text-[16px] leading-[22px] font-extrabold '>{token.delmemb5name}</div>
+                                <div className='text-[#717171] text-[11px] leading-[16px] my-auto ml-[5px] '>{token.delmsgtime5}</div>
+                            </div>
+                            <div className='text-[15px] leading-[24px] font-light lg:w-[564px] '>{token.delchat5}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <input placeholder='Type a message' className='w-[605px] h-[40px] rounded-[20px] pl-[8px] text-[#00000] '/>
+                    </div>
                 </div>
             ))}
 
