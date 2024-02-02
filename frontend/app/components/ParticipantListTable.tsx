@@ -13,18 +13,15 @@ interface CountTag {
   admin: boolean;
 }
 
-interface popUpType {
-  [key: string]: boolean;
-}
+// interface popUpType {
+//   id:string | null;
+// }
 export default function ParticipantListTable(props: CountTag): JSX.Element {
-  const [isOptionsOpen, setIsOptionsOpen] = useState<popUpType>({});
+  const [isOptionsOpen, setIsOptionsOpen] = useState<string | null>(null);
 
-  const handleOptions = (index: any) => {
+  const handleOptions = (index: string) => {
     // setIsOptionsOpen(!isOptionsOpen);
-    setIsOptionsOpen((prevState) => ({
-      ...prevState,
-      [index]: !prevState[index],
-    }));
+    setIsOptionsOpen((prevState) => (prevState === index ? null : index));
   };
 
   //   const tokens: Token[] = data;
@@ -69,9 +66,9 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
               {props.admin && (
                 <td className="w-[100px] ">
                   {
-                    <div onClick={() => handleOptions(item.id.toString())}>
+                    <div onClick={() => handleOptions(item.id)}>
                       <Options />
-                      {isOptionsOpen[item.id.toString()] && (
+                      {isOptionsOpen && (
                         <div className="flex flex-col  gap-1 absolute w-[150px]">
                           <div className="px-[4px] py-[5px] bg-redBtn rounded-[2px] items-center">
                             <h2>Remove member</h2>
