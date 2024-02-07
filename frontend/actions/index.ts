@@ -8,6 +8,7 @@ import {
   handleGetGroupCollateralValue,
   handleGetMemberReputationPoint,
   subscribePremium,
+  startContribution,
 } from '@/database'
 import {
   createNewGroup,
@@ -16,7 +17,9 @@ import {
   valueFormatter,
   subscribePremiumUser,
   joinCreatedGroup,
+  StartContribution,
 } from '@/contract-actions'
+import { StartContributionType } from '@/lib/types'
 
 const createUser = async (name: string) => {
   await connectDB()
@@ -185,6 +188,36 @@ const premiumSubscription = async () => {
     console.error('An error occurred while subscribing to premium', error)
     if (error) throw new SubscriptionError()
   }
+}
+
+const startGroupContribution = async (
+  startContributionInput: StartContributionType,
+) => {
+  try {
+    if (
+      !startContributionInput.id ||
+      typeof startContributionInput.id !== 'number'
+    )
+      throw new Error('Invalid id')
+    if (
+      !startContributionInput.address ||
+      typeof startContributionInput.address !== 'string'
+    )
+      throw new Error('Invalid address')
+    const { signer } = await getProviderAndSigner()
+    const signerAddress = await signer.getAddress()
+
+    const contributionValue: number = await startContribution({
+      ...startContributionInput,
+      address: signerAddress as string,
+    })
+
+    if (!contributionValue) {
+      throw new StartContributionError()
+    }
+
+    await StartContribution(startContributionInput.id, contributionValue)
+  } catch (error) {}
 }
 
 export { createUser, createUserGroup, joinUserGroup, premiumSubscription }
