@@ -240,7 +240,7 @@ const endRotation = async (group: any) => {
 }
 
 /**Subscription functions */
-const subscribePremium = async (input: PremiumType) => {
+const subscribePremium = async (input: PremiumType): Promise<string> => {
   validatePremiumInput({
     address: input.address,
     amount: input.amount,
@@ -269,10 +269,10 @@ const subscribePremium = async (input: PremiumType) => {
     member.isPremiumSubscriber = true
     member.subscriptionStartTime = new Date()
     await member.save()
-    return 'Member subscribed to premium'
+    return 'Successfully purchased premium services'
   } catch (error) {
-    console.log('An error occurred while subscribing a member', error)
-    throw new SubscriptionError()
+    console.error(error)
+    throw new Error('An error occurred while making this subscription')
   }
 }
 
