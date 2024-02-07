@@ -106,7 +106,12 @@ class EndRotationError extends Error {
   }
 }
 
-class GroupStateError extends Error {}
+class GroupStateError extends Error {
+  constructor(message?: string) {
+    super(message ? message : 'Group is in invalid state')
+    this.name = 'GroupStateError'
+  }
+}
 
 class SubscriptionError extends Error {
   constructor(message?: string) {
