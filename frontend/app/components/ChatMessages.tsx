@@ -109,7 +109,7 @@ const ChatMessages = () => {
               <Image src={peep} alt='svg' className=''/>
               <div className='text-[10px] leading-[15px] font-bold text-[#fff] my-auto ml-[4px] '>Total Contribution: {token.chat4totalcont}</div>
               </div>
-              <hr className='bg-[#DDDDDD]'/>
+              
             </div>
           </div>
 
