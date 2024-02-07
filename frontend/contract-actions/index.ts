@@ -106,6 +106,22 @@ const joinGroupWithSigner = async (
   }
 }
 
+const startContributionWithSigner = async (
+  signer: ethers.Signer,
+  contractAddress: string,
+  abi: any,
+  id: number,
+  contributionValue: number,
+) => {
+  try {
+    const contract = new ethers.Contract(contractAddress, abi, signer)
+    const txResponse = await contract.startContribution(id, contributionValue)
+    await txResponse.wait()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 const valueFormatter = (value: string) => {
   try {
     const formattedValue = ethers.utils.parseUnits(value, 'ether')
@@ -208,6 +224,22 @@ const subscribePremiumUser = async (): Promise<[string, number]> => {
   }
 }
 
+const StartContribution = async (id: number, contributionValue: number) => {
+  try {
+    const { signer } = await getProviderAndSigner()
+    await startContributionWithSigner(
+      signer,
+      contractAddress,
+      abi,
+      id,
+      contributionValue,
+    )
+  } catch (error) {
+    console.error(error)
+    throw new StartContributionError()
+  }
+}
+
 export {
   createNewMember,
   createNewGroup,
@@ -215,4 +247,5 @@ export {
   joinCreatedGroup,
   valueFormatter,
   subscribePremiumUser,
+  StartContribution,
 }
