@@ -32,6 +32,23 @@ const createNewMemberWithSigner = async (
   return [formatted, signerAddress]
 }
 
+const subscribePremiumWithSigner = async (
+  signer: ethers.Signer,
+  contractAddress: string,
+  abi: any,
+  premiumValue: ethers.BigNumber | number,
+) => {
+  const signerAddress = await signer.getAddress()
+  const contract = new ethers.Contract(contractAddress, abi, signer)
+
+  const transaction = await contract.subscribePremium({
+    value: premiumValue,
+  })
+  await transaction.wait()
+
+  return [signerAddress, premiumValue]
+}
+
 const createNewGroupWithSigner = async (
   signer: ethers.Signer,
   contractAddress: string,
@@ -167,10 +184,35 @@ const joinCreatedGroup = async ({
   }
 }
 
+const subscribePremiumUser = async (): Promise<[string, number]> => {
+  try {
+    const result = valueFormatter('0.002')
+
+    if (!result) throw new Error('Error parsing value')
+
+    const [formattedValue, numberFormat] = result
+    const { signer } = await getProviderAndSigner()
+
+    const [signerAddress, premiumValue] = await subscribePremiumWithSigner(
+      signer,
+      contractAddress,
+      abi,
+      formattedValue,
+    )
+
+    if (!signerAddress || !premiumValue) throw new Error('Error parsing value')
+    return [signerAddress as string, numberFormat as number]
+  } catch (error) {
+    console.error(error)
+    throw new SubscriptionError()
+  }
+}
+
 export {
   createNewMember,
   createNewGroup,
   getProviderAndSigner,
   joinCreatedGroup,
   valueFormatter,
+  subscribePremiumUser,
 }
