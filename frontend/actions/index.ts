@@ -7,15 +7,16 @@ import {
   getIsPremiumSubscriber,
   handleGetGroupCollateralValue,
   handleGetMemberReputationPoint,
+  subscribePremium,
 } from '@/database'
 import {
   createNewGroup,
   createNewMember,
   getProviderAndSigner,
   valueFormatter,
+  subscribePremiumUser,
+  joinCreatedGroup,
 } from '@/contract-actions'
-import { joinCreatedGroup } from '@/contract-actions'
-import { joinCreatedGroupType } from '@/lib/types'
 
 const createUser = async (name: string) => {
   await connectDB()
@@ -170,4 +171,20 @@ const joinUserGroup = async (id: number, amount: string) => {
   }
 }
 
-export { createUser, createUserGroup }
+const premiumSubscription = async () => {
+  try {
+    const [signerAddress, numberFormat] = await subscribePremiumUser()
+    if (!signerAddress || !numberFormat)
+      throw new Error('error communicating with smart contract')
+
+    await subscribePremium({
+      address: signerAddress as string,
+      amount: numberFormat as number,
+    })
+  } catch (error) {
+    console.error('An error occurred while subscribing to premium', error)
+    if (error) throw new SubscriptionError()
+  }
+}
+
+export { createUser, createUserGroup, joinUserGroup, premiumSubscription }
