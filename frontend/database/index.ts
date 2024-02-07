@@ -121,7 +121,7 @@ const GroupDB = {
 /**state functions */
 const startContribution = async (
   startContributionInput: StartContributionType,
-) => {
+): Promise<number> => {
   validateStartContributionInput(startContributionInput)
   try {
     const group = await GroupDB.findGroupById(startContributionInput.id)
@@ -141,9 +141,11 @@ const startContribution = async (
       address: startContributionInput.address,
     })
 
-    console.log(contributionValue)
+    if (contributionValue === 0 || contributionValue === undefined) {
+      throw new Error('No contribution value found')
+    }
 
-    if (group.currentState === ('contribution' as CurrentState)) {
+    if (group.currentState === (State.Contribution as CurrentState)) {
       throw new GroupStateError(
         `${group.name} is already in contribution state`,
       )
@@ -155,9 +157,7 @@ const startContribution = async (
     group.timer = Date.now()
 
     await group.save()
-    return console.log(
-      `${group.name} started contribution, contribution value: ${contributionValue}`,
-    )
+    return contributionValue
   } catch (error) {
     console.error('An error occurred while starting contribution', error)
     throw new StartContributionError()
