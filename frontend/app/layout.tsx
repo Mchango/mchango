@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 // const nunito = Nunito({
 //   subsets: ['latin'],
 //   display: 'swap',
-// }) 
+// })
 export default function RootLayout({
   children,
 }: {
