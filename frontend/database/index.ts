@@ -33,6 +33,12 @@ import {
 
 const PREMIUM_FEE = 0.5 as Number
 
+enum State {
+  Initialization = 'initialization',
+  Contribution = 'contribution',
+  Rotation = 'rotation',
+}
+
 /**Database functions */
 const MemberDB = {
   getMemberByAddress: async (address: String) => {
@@ -115,7 +121,7 @@ const GroupDB = {
 /**state functions */
 const startContribution = async (
   startContributionInput: StartContributionType,
-) => {
+): Promise<number> => {
   validateStartContributionInput(startContributionInput)
   try {
     const group = await GroupDB.findGroupById(startContributionInput.id)
@@ -135,9 +141,11 @@ const startContribution = async (
       address: startContributionInput.address,
     })
 
-    console.log(contributionValue)
+    if (contributionValue === 0 || contributionValue === undefined) {
+      throw new Error('No contribution value found')
+    }
 
-    if (group.currentState === ('contribution' as CurrentState)) {
+    if (group.currentState === (State.Contribution as CurrentState)) {
       throw new GroupStateError(
         `${group.name} is already in contribution state`,
       )
@@ -149,9 +157,7 @@ const startContribution = async (
     group.timer = Date.now()
 
     await group.save()
-    return console.log(
-      `${group.name} started contribution, contribution value: ${contributionValue}`,
-    )
+    return contributionValue
   } catch (error) {
     console.error('An error occurred while starting contribution', error)
     throw new StartContributionError()
@@ -171,19 +177,19 @@ const startRotation = async (id: Number, address: String) => {
       return console.log(`${address} is not group admin`)
 
     switch (group.currentState) {
-      case 'rotation' as CurrentState:
+      case State.Rotation as CurrentState:
         throw new GroupStateError(`${group.name} is already in rotation state`)
 
-      case 'initialization' as CurrentState:
+      case State.Initialization as CurrentState:
         throw new GroupStateError(`${group.name} is not in contribution state`)
 
-      case 'contribution' as CurrentState:
+      case State.Contribution as CurrentState:
         await validateContributionTime(group)
 
         if (group.eligibleMembers.length < 2)
           throw new Error('Not enough eligible members')
 
-        group.currentState = 'rotation' as CurrentState
+        group.currentState = State.Rotation as CurrentState
         await handleRotateParticipant(id)
 
         await group.save()
@@ -240,7 +246,7 @@ const endRotation = async (group: any) => {
 }
 
 /**Subscription functions */
-const subscribePremium = async (input: PremiumType) => {
+const subscribePremium = async (input: PremiumType): Promise<string> => {
   validatePremiumInput({
     address: input.address,
     amount: input.amount,
@@ -269,10 +275,10 @@ const subscribePremium = async (input: PremiumType) => {
     member.isPremiumSubscriber = true
     member.subscriptionStartTime = new Date()
     await member.save()
-    return 'Member subscribed to premium'
+    return 'Successfully purchased premium services'
   } catch (error) {
-    console.log('An error occurred while subscribing a member', error)
-    throw new SubscriptionError()
+    console.error(error)
+    throw new Error('An error occurred while making this subscription')
   }
 }
 
@@ -646,7 +652,7 @@ const joinGroup = async (joinGroupInput: JoinGroupType) => {
     if (isMemberAlreadyInGroup) throw new Error('You are already in this group')
 
     switch (group.currentState) {
-      case 'initialization' as CurrentState:
+      case State.Initialization as CurrentState:
         if (joinGroupInput.collateralValue < group.collateral)
           throw new Error('Insufficient collateral')
 
@@ -666,10 +672,10 @@ const joinGroup = async (joinGroupInput: JoinGroupType) => {
 
         break
 
-      case 'contribution' as CurrentState:
+      case State.Contribution as CurrentState:
         return console.log('Group is in contribution, cannot join')
 
-      case 'rotation' as CurrentState:
+      case State.Rotation as CurrentState:
         return console.log('Group is in rotation, cannot join')
     }
 
@@ -708,7 +714,7 @@ const contribute = async (contributeInput: ContributionType) => {
       })
 
     switch (group.currentState) {
-      case 'contribution' as CurrentState:
+      case State.Contribution as CurrentState:
         if (contributeInput.amount < group.contributionValue) {
           throw new Error('Insufficient Amount')
         }
@@ -738,7 +744,7 @@ const contribute = async (contributeInput: ContributionType) => {
           `${contributeInput.address} contributed ${contributeInput.amount} to ${group.name}`,
         )
 
-      case 'rotation' as CurrentState:
+      case State.Rotation as CurrentState:
         if (!participant) {
           return console.log('Only participant can contribute in rotation')
         }

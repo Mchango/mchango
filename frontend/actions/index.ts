@@ -7,15 +7,19 @@ import {
   getIsPremiumSubscriber,
   handleGetGroupCollateralValue,
   handleGetMemberReputationPoint,
+  subscribePremium,
+  startContribution,
 } from '@/database'
 import {
   createNewGroup,
   createNewMember,
   getProviderAndSigner,
   valueFormatter,
+  subscribePremiumUser,
+  joinCreatedGroup,
+  StartContribution,
 } from '@/contract-actions'
-import { joinCreatedGroup } from '@/contract-actions'
-import { joinCreatedGroupType } from '@/lib/types'
+import { StartContributionType } from '@/lib/types'
 
 const createUser = async (name: string) => {
   await connectDB()
@@ -170,4 +174,50 @@ const joinUserGroup = async (id: number, amount: string) => {
   }
 }
 
-export { createUser, createUserGroup }
+const premiumSubscription = async () => {
+  try {
+    const [signerAddress, numberFormat] = await subscribePremiumUser()
+    if (!signerAddress || !numberFormat)
+      throw new Error('error communicating with smart contract')
+
+    await subscribePremium({
+      address: signerAddress as string,
+      amount: numberFormat as number,
+    })
+  } catch (error) {
+    console.error('An error occurred while subscribing to premium', error)
+    if (error) throw new SubscriptionError()
+  }
+}
+
+const startGroupContribution = async (
+  startContributionInput: StartContributionType,
+) => {
+  try {
+    if (
+      !startContributionInput.id ||
+      typeof startContributionInput.id !== 'number'
+    )
+      throw new Error('Invalid id')
+    if (
+      !startContributionInput.address ||
+      typeof startContributionInput.address !== 'string'
+    )
+      throw new Error('Invalid address')
+    const { signer } = await getProviderAndSigner()
+    const signerAddress = await signer.getAddress()
+
+    const contributionValue: number = await startContribution({
+      ...startContributionInput,
+      address: signerAddress as string,
+    })
+
+    if (!contributionValue) {
+      throw new StartContributionError()
+    }
+
+    await StartContribution(startContributionInput.id, contributionValue)
+  } catch (error) {}
+}
+
+export { createUser, createUserGroup, joinUserGroup, premiumSubscription }

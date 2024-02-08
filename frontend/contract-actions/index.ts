@@ -32,6 +32,23 @@ const createNewMemberWithSigner = async (
   return [formatted, signerAddress]
 }
 
+const subscribePremiumWithSigner = async (
+  signer: ethers.Signer,
+  contractAddress: string,
+  abi: any,
+  premiumValue: ethers.BigNumber | number,
+) => {
+  const signerAddress = await signer.getAddress()
+  const contract = new ethers.Contract(contractAddress, abi, signer)
+
+  const transaction = await contract.subscribePremium({
+    value: premiumValue,
+  })
+  await transaction.wait()
+
+  return [signerAddress, premiumValue]
+}
+
 const createNewGroupWithSigner = async (
   signer: ethers.Signer,
   contractAddress: string,
@@ -86,6 +103,22 @@ const joinGroupWithSigner = async (
   } catch (error) {
     console.error(`An error occurred: ${error}`)
     throw new JoinGroupError()
+  }
+}
+
+const startContributionWithSigner = async (
+  signer: ethers.Signer,
+  contractAddress: string,
+  abi: any,
+  id: number,
+  contributionValue: number,
+) => {
+  try {
+    const contract = new ethers.Contract(contractAddress, abi, signer)
+    const txResponse = await contract.startContribution(id, contributionValue)
+    await txResponse.wait()
+  } catch (error) {
+    console.error(error)
   }
 }
 
@@ -167,10 +200,52 @@ const joinCreatedGroup = async ({
   }
 }
 
+const subscribePremiumUser = async (): Promise<[string, number]> => {
+  try {
+    const result = valueFormatter('0.002')
+
+    if (!result) throw new Error('Error parsing value')
+
+    const [formattedValue, numberFormat] = result
+    const { signer } = await getProviderAndSigner()
+
+    const [signerAddress, premiumValue] = await subscribePremiumWithSigner(
+      signer,
+      contractAddress,
+      abi,
+      formattedValue,
+    )
+
+    if (!signerAddress || !premiumValue) throw new Error('Error parsing value')
+    return [signerAddress as string, numberFormat as number]
+  } catch (error) {
+    console.error(error)
+    throw new SubscriptionError()
+  }
+}
+
+const StartContribution = async (id: number, contributionValue: number) => {
+  try {
+    const { signer } = await getProviderAndSigner()
+    await startContributionWithSigner(
+      signer,
+      contractAddress,
+      abi,
+      id,
+      contributionValue,
+    )
+  } catch (error) {
+    console.error(error)
+    throw new StartContributionError()
+  }
+}
+
 export {
   createNewMember,
   createNewGroup,
   getProviderAndSigner,
   joinCreatedGroup,
   valueFormatter,
+  subscribePremiumUser,
+  StartContribution,
 }
