@@ -10,12 +10,22 @@ type Props = {
  * @dev this function enables animation on page navigation
  */
 
+const variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
 const Template = ({ children }: Props) => {
   return (
     <motion.div
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ ease: 'linear', delay: 1 }}
+      variants={variants}
+      initial="hidden"
+      whileInView="visible"
+      transition={{
+        delay: 0.75,
+        ease: 'easeInOut',
+        duration: 0.5,
+      }}
     >
       {children}
     </motion.div>
