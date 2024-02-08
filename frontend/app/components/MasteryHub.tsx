@@ -32,7 +32,7 @@ const cardItems = [
 
 const MasteryHub = () => {
   return (
-    <div className="flex flex-col sm:flex-row lg:flex-col justify-center -mt-[100px] mb-[50px] w-full relative">
+    <div className="flex flex-col sm:flex-row lg:flex-col justify-center  mb-[50px] w-full relative">
       <div className=" padding-x relative flex flex-col gap-5 lg:absolute  lg:left-0 sm:z-50">
         <h3 className="text-[24px] sm:text-[40px] font-lexend font-extrabold leading-[48px] -tracking-[1.2px] text-[#FFFFFF] ">
           Mchango_ Mastery
