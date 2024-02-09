@@ -22,7 +22,7 @@ const Template = ({ children }: Props) => {
       initial="hidden"
       whileInView="visible"
       transition={{
-        delay: 0.75,
+        delay: 0.45,
         ease: 'easeInOut',
         duration: 0.5,
       }}

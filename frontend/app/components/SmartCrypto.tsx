@@ -25,16 +25,16 @@ const SmartCrypto = () => {
                     alt="icon"
                     className="w-[250px] h-[150px] lg:h-[245px] lg:w-[387px] mx-auto "
                   />
-                  <p className="text-[#F1F1F1] text-[20px] leading-[26.4px] lg:text-[30px] font-lexend font-extrabold lg:leading-[33px] text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
+                  <p className="text-[#F1F1F1] text-[18px] leading-[27px] lg:text-[30px] font-lexend font-extrabold lg:leading-[33px] tracking-wide text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
                     Real-Time Investment Insights
                   </p>
 
-                  <p className="text-[#fff] font-work font-medium text-[16px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px] -pt-1 ">
+                  <p className="text-[#fff] font-work font-medium text-[14px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px] -pt-1 ">
                     Stay informed with live investment data. Mchango_ provides
                     real-time insights, alerts, and analysis for informed
                     decision-making in the cryptocurrency market.
                   </p>
-                  <button className="text-[16x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
+                  <button className="text-[14x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
                     Get Started
                   </button>
                 </BackgroundGradient>
@@ -48,15 +48,15 @@ const SmartCrypto = () => {
                     alt="icon"
                     className="w-[250px] h-[150px] lg:h-[245px] lg:w-[387px] mx-auto "
                   />
-                  <p className="text-[#F1F1F1] text-[20px] leading-[26.4px] lg:text-[30px] font-lexend font-extrabold lg:leading-[33px] text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
+                  <p className="text-[#F1F1F1] text-[18px] leading-[27px] lg:text-[30px] tracking-wide font-lexend font-extrabold lg:leading-[33px] text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
                     Community Collaboration for Profitability
                   </p>
-                  <p className="text-[#fff] font-work font-medium text-[16px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px]  ">
+                  <p className="text-[#fff] font-work font-medium text-[14px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px]  ">
                     Boost profits through community collaboration. Join forces,
                     share wisdom, manage risks, and achieve greater
                     profitability in the volatile market.
                   </p>
-                  <button className="text-[16x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
+                  <button className="text-[14x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
                     Get Started
                   </button>
                 </BackgroundGradient>
@@ -70,15 +70,15 @@ const SmartCrypto = () => {
                     alt="icon"
                     className="w-[250px] h-[170px] lg:h-[245px] lg:w-[387px] mx-auto "
                   />
-                  <p className="text-[#F1F1F1] text-[20px] leading-[26.4px] lg:text-[30px] font-lexend font-extrabold lg:leading-[33px] text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
+                  <p className="text-[#F1F1F1] text-[18px] leading-[27px] tracking-wide lg:text-[30px] font-lexend font-extrabold lg:leading-[33px] text-center mx-auto mt-[43px] mb-[23px] w-[253px] lg:w-[316px] ">
                     Automated Group Savings
                   </p>
-                  <p className="text-[#fff] font-work font-medium text-[16px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px] pt-9 ">
+                  <p className="text-[#fff] font-work font-medium text-[14px] leading-[25.1px] lg:text-[22px] lg:leading-[34.62px] text-center mx-auto w-[336px] lg:w-[388px] pt-9 ">
                     Join or create savings groups effortlessly. Mchango_
                     automates contributions, ensuring disciplined group savings
                     for shared financial objectives.
                   </p>
-                  <button className="text-[16x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
+                  <button className="text-[14x] text-white font-lexend font-extrabold mx-auto text-center lg:mt-[45px] mt-[20px] cursor-pointer underline underline-offset-4 hover:scale-100 active:scale-90 transition-all duration-200 flex self-center ">
                     Get Started
                   </button>
                 </BackgroundGradient>
