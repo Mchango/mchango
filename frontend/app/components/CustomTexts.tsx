@@ -6,7 +6,13 @@ import { staggerContainer, textContainer, textVariant2 } from '@/utils/motion';
 type TypingTextProps = {
   title: string;
   textStyles: React.CSSProperties | string;
+  
 };
+
+type TitleTextProps = {
+  textStyles: React.CSSProperties | string;
+  children: React.ReactNode
+}
 
 export const TypingText = ({ title, textStyles }: TypingTextProps) => (
   <motion.div
@@ -25,7 +31,7 @@ export const TypingText = ({ title, textStyles }: TypingTextProps) => (
   </motion.div>
 );
 
-export const TitleText = ({ title, textStyles }: TypingTextProps) => (
+export const TitleText = ({ children, textStyles }: TitleTextProps) => (
   <motion.div
     variants={staggerContainer(0.1, 0.1)}
     initial="hidden"
@@ -38,7 +44,7 @@ export const TitleText = ({ title, textStyles }: TypingTextProps) => (
       whileInView="show"
       className={` ${textStyles}`}
     >
-      {title}
+      {children}
     </motion.h2>
   </motion.div>
 );
