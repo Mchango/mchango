@@ -12,10 +12,11 @@ import SmartCrypto from '../components/SmartCrypto';
 const Landing = () => {
   return (
     <>
-      <div className="flex justify-center">
+      <div className="flex justify-center overflow-x-hidden">
         <div className="w-full ">
-          <div className='h-full w-full bg-[url("https://res.cloudinary.com/dmye53wps/image/upload/v1699652923/mchango_m0fuc7.svg")] bg-cover bg-center '>
-            <div className="lg:max-w-7xl w-full mx-auto">
+          <div className='h-full w-full bg-[url("https://res.cloudinary.com/dmye53wps/image/upload/v1699652923/mchango_m0fuc7.svg")] bg-cover bg-center relative  '>
+            <div className=" absolute bg-grid-white/[0.1] h-full w-full"></div>
+            <div className="lg:max-w-7xl w-full mx-auto z-50 relative">
               <Navbar />
               <GatewayLanding />
               <SmartCrypto />

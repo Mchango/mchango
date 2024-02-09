@@ -1,34 +1,35 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
 
-type Props = {
+type MotionNavProps = {
   children: React.ReactNode;
+  className?: string; // Optional className prop
 };
-
-/**
- * @dev this function enables animation on page navigation
- */
 
 const variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
 };
 
-const Template = ({ children }: Props) => {
+const MotionNav = ({ children, className }: MotionNavProps) => {
   return (
-    <motion.div
+    <motion.nav
+      className={className} // Apply the className prop here
       variants={variants}
       initial="hidden"
       whileInView="visible"
+      exit="hidden"
       transition={{
-        delay: 0.75,
+        delay: 0.1,
         ease: 'easeInOut',
         duration: 0.5,
       }}
     >
       {children}
-    </motion.div>
+    </motion.nav>
   );
 };
-export default Template;
+
+export default MotionNav;
