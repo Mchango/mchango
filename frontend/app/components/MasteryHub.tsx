@@ -33,14 +33,14 @@ const cardItems = [
 
 const MasteryHub = () => {
   return (
-    <div className="flex flex-col sm:flex-row lg:flex-col justify-center  mb-[50px] w-full relative">
+    <div className="flex flex-col sm:flex-row lg:flex-col lg:-mt-[100px] items-center justify-center  mb-[50px] w-full relative">
       <div className=" padding-x relative flex flex-col gap-3 lg:absolute  lg:left-0 sm:z-50">
         <TitleText
-          textStyles={`text-[20px] sm:text-[24px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px]   tracking-wide lg:leading-normal `}
+          textStyles={`text-[20px] sm:text-[22px] lg:text-[32px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px]   tracking-wide lg:leading-normal `}
         >
           <p>Mchango Mastery</p>
         </TitleText>
-        <p className="text-[14px] font-work font-medium -tracking-[0.32p] leading-[32px] my-[12px] sm:my-[15px] w-[fit-content]  sm:w-[390px]  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 ">
+        <p className="text-[14px] sm:text-[18px]  font-work font-medium -tracking-[0.32p] leading-[32px] my-[12px] sm:my-[15px] w-[fit-content] sm:w-[390px]  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 ">
           Embark on a journey to financial empowerment with Mchango_. Discover a
           step-by-step guide to collaborative savings, real-time insights, and
           community-driven prosperity.
@@ -50,7 +50,7 @@ const MasteryHub = () => {
         </button>
       </div>
 
-      <div className="mt-[80px] w-full mb-5 padding-x sm:p-2">
+      <div className="mt-[80px] w-full mb-5 padding-x sm:px-5">
         <CardStack items={cardItems} />
       </div>
       <Image
