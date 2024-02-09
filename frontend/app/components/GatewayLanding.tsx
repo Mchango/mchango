@@ -19,7 +19,7 @@ const GatewayLanding = () => {
             className="sm:w-[110px] sm:h-[100px] w-[60px] h-[50px] "
           /> */}
 
-          <h1 className='"text-[40px] sm:text-[50px] lg:text-[70px] font-lexend text-[#FFF] font-extrabold leading-[43px] lg:leading-normal my-auto ml-[15px] "'>
+          <h1 className="text-[40px] sm:text-[50px] lg:text-[70px] font-lexend text-[#FFF] font-extrabold leading-[43px] lg:leading-normal my-auto ml-[15px] ">
             Mchango_
           </h1>
         </div>
