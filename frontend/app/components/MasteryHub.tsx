@@ -2,7 +2,6 @@ import Image from 'next/image';
 import React from 'react';
 import mastery from '../assets/mastery.png';
 import { CardStack } from './CardStack';
-import { TitleText } from './CustomTexts';
 
 const cardItems = [
   {
@@ -35,12 +34,13 @@ const MasteryHub = () => {
   return (
     <div className="flex flex-col sm:flex-row lg:flex-col justify-center  mb-[50px] w-full relative">
       <div className=" padding-x relative flex flex-col gap-3 lg:absolute  lg:left-0 sm:z-50">
-        <TitleText
-          textStyles={`text-[32px] sm:text-[40px] font-lexend font-semibold leading-[48px] -tracking-[1.2px] text-[#FFFFFF] `}
+        <h3
+          className={`text-[32px] sm:text-[40px] font-lexend font-semibold leading-[48px] -tracking-[1.2px] text-[#FFFFFF] `}
         >
-          <p>Mchango_ Mastery</p>
-        </TitleText>
-        <p className="text-[18px] font-work font-medium -tracking-[0.32p] leading-[32px] my-[12px] sm:my-[15px] w-[fit-content]  sm:w-[390px]  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500   ">
+          Mchango_ Mastery
+        </h3>
+
+        <p className="text-[18px] font-work font-medium -tracking-[0.32p] leading-[32px] my-[12px] sm:my-[15px] w-[fit-content]  sm:w-[390px]  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 ">
           Embark on a journey to financial empowerment with Mchango_. Discover a
           step-by-step guide to collaborative savings, real-time insights, and
           community-driven prosperity.

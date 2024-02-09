@@ -1,9 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
 import mchlogo from '../assets/mchlogo.svg';
-import { TypingText, TitleText } from './CustomTexts';
 import { TypewriterEffectSmooth } from './TypewritterEffect';
-// import '../global.css'
 
 const wordsToAnimate = [{ text: 'Begin contributing, saving, and growing.' }];
 
@@ -28,15 +26,15 @@ const GatewayLanding = () => {
         <h2 className=" text-[28px] sm:text-[50px] font-lexend font-bold leading-[32px] sm:leading-[50px]  text-gra tracking-wider text-center mb-[21px] z-20">
           Gateway to Smart Savings and Contributions
         </h2>
-        <TitleText
-          textStyles={`text-[18px] sm:text-[24px] leading-[22px] sm:leading-[32px]  font-work font-medium lg:leading-[33px] tracking-[0.72px] text-center z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-4`}
+
+        <h3
+          className={`text-[18px] sm:text-[24px] leading-[22px] sm:leading-[32px]  font-work font-medium lg:leading-[33px] tracking-[0.72px] text-center z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-4`}
         >
-          <p>
-            {' '}
-            Dive into collaborative savings, real-time insights, and a thriving
-            community. Let's elevate your crypto journey together.
-          </p>
-        </TitleText>
+          {' '}
+          Dive into collaborative savings, real-time insights, and a thriving
+          community. Let's elevate your crypto journey together.
+        </h3>
+
         <div className="flex justify-center">
           <TypewriterEffectSmooth
             words={wordsToAnimate}
