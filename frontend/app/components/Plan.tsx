@@ -6,6 +6,7 @@ import premium from '../assets/premium.svg';
 import Checkdark from '../assets/Checkdark.svg';
 import { TitleText } from './CustomTexts';
 import { PinContainer } from './3dPin';
+import { BackgroundGradient } from './BackgroundGradient';
 
 const Plan = () => {
   return (
@@ -43,7 +44,8 @@ const Plan = () => {
               your journey towards financial goals with group savings power.
             </p>
 
-            <div className="bg-gray-600 rounded-[20px] gap-1 p-[30px] w-[fit-content] flex flex-col">
+            {/**Plan Details */}
+            <BackgroundGradient className="rounded-[20px] gap-1 p-[30px] w-[fit-content] flex flex-col">
               {/**Commision Fee */}
               <div className="flex flex-row gap-1 items-center w-[fit-content]">
                 <Image src={Check} alt="icon" width={30} height={30} />
@@ -67,7 +69,7 @@ const Plan = () => {
                   Subscription fee: 0 ETH
                 </p>
               </div>
-            </div>
+            </BackgroundGradient>
             <button className="border-[1px] fon-satoshi font-semibold border-[#008080] w-[fit-content]  rounded-[15px] text-[#FFFFFF] py-2 px-4 text-[14px] tracking-[0.8px] hover:scale-110 active:scale-100px transition-all duration-200 hover:border-purple-400 flex self-center ">
               Get Started
             </button>
@@ -96,10 +98,11 @@ const Plan = () => {
               exclusive benefits, designed for accelerated financial success.
             </p>
 
-            <div className="bg-gray-600 rounded-[20px] gap-1 p-[30px] w-[fit-content] flex flex-col">
+            {/**Plan Details */}
+            <BackgroundGradient className=" rounded-[20px] gap-1 p-[30px] w-[fit-content] flex flex-col">
               {/**Commision Fee */}
               <div className="flex flex-row gap-1 items-center w-[fit-content]">
-                <Image src={Checkdark} alt="icon" width={30} height={30} />
+                <Image src={Check} alt="icon" width={30} height={30} />
                 <p className="font-Azeret text-[12px]  w-[fit-content]">
                   Commission fee: 1.5%
                 </p>
@@ -107,7 +110,7 @@ const Plan = () => {
 
               {/**Subscription Max */}
               <div className="flex flex-row gap-1 items-center">
-                <Image src={Checkdark} alt="icon" width={30} height={30} />
+                <Image src={Check} alt="icon" width={30} height={30} />
                 <p className="font-Azeret text-[12px]  w-[fit-content]">
                   max subscribers: 100
                 </p>
@@ -115,12 +118,12 @@ const Plan = () => {
 
               {/**Subscription Fee */}
               <div className="flex flex-row gap-1 items-center">
-                <Image src={Checkdark} alt="icon" width={30} height={30} />
+                <Image src={Check} alt="icon" width={30} height={30} />
                 <p className="font-Azeret text-[12px]  w-[fit-content]">
                   Subscription fee: 0.02 ETH
                 </p>
               </div>
-            </div>
+            </BackgroundGradient>
             <button className="border-[1px] fon-satoshi font-semibold border-[#008080] w-[fit-content]  rounded-[15px] text-[#FFFFFF] py-2 px-4 text-[14px] tracking-[0.8px] hover:scale-110 active:scale-100px transition-all duration-200 hover:border-purple-400 flex self-center ">
               Get Started
             </button>
