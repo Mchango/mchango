@@ -4,16 +4,19 @@ import invest from '../assets/invest.svg';
 import collab from '../assets/collab.svg';
 import auto from '../assets/auto.svg';
 import { BackgroundGradient } from './BackgroundGradient';
+import { TitleText } from './CustomTexts';
 
 const SmartCrypto = () => {
   return (
     <>
       <div className="flex justify-center mt-[70px] lg:mt-[76px] mb-[50px] ">
         <div className="w-full">
-          <p className=" text-[16px] sm:text-[24px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px] mx-auto text-center tracking-wide lg:leading-normal ">
-            Smart Crypto Investing <br className="sm:hidden" />
-            and Community Empowerment
-          </p>
+          <TitleText textStyles="text-[20px] sm:text-[24px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px] mx-auto text-center tracking-wide lg:leading-normal ">
+            <p>
+              Smart Crypto Investing <br className="sm:hidden" />
+              and Community Empowerment
+            </p>
+          </TitleText>
           <div className=" flex justify-center items-center">
             <div className="grid lg:grid-cols-3 gap-5 justify-between">
               {/**Investment Card */}
