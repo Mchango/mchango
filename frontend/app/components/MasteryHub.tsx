@@ -15,7 +15,7 @@ const cardItems = [
     id: 2,
     name: 'Explore savings groups',
     designation: 'Mchango Operations',
-    content: <p>Browse and explore savings grouos</p>,
+    content: <p>Browse and explore savings groups</p>,
   },
   {
     id: 3,
