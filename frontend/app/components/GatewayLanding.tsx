@@ -28,13 +28,15 @@ const GatewayLanding = () => {
         </h2>
 
         {/**Hero Text */}
-        <h3
-          className={`text-[14px] sm:text-[24px] leading-[22px] sm:leading-[32px]  font-work font-medium lg:leading-[33px] tracking-[0.72px] text-center z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-4`}
+        <TitleText
+          textStyles={`text-[14px] sm:text-[24px] leading-[22px] sm:leading-[32px]  font-work font-medium lg:leading-[33px] tracking-[0.72px] text-center z-20 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 py-4`}
         >
-          {' '}
-          Dive into collaborative savings, real-time insights, and a thriving
-          community. Let's elevate your crypto journey together.
-        </h3>
+          <p>
+            {' '}
+            Dive into collaborative savings, real-time insights, and a thriving
+            community. Let's elevate your crypto journey together.
+          </p>
+        </TitleText>
 
         <div className="flex justify-center">
           <TypingText
