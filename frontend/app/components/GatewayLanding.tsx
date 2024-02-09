@@ -20,9 +20,10 @@ const GatewayLanding = () => {
             alt="mchlogo"
             className="sm:w-[110px] sm:h-[100px] w-[60px] h-[50px] "
           /> */}
-          <TitleText textStyles="text-[40px] sm:text-[50px] lg:text-[70px] font-lexend text-[#FFF] font-extrabold leading-[43px] lg:leading-normal my-auto ml-[15px] ">
-            <p>Mchango_</p>
-          </TitleText>
+
+          <h1 className='"text-[40px] sm:text-[50px] lg:text-[70px] font-lexend text-[#FFF] font-extrabold leading-[43px] lg:leading-normal my-auto ml-[15px] "'>
+            Mchango_
+          </h1>
         </div>
         <h2 className=" text-[28px] sm:text-[50px] font-lexend font-bold leading-[32px] sm:leading-[50px]  text-gra tracking-wider text-center mb-[21px] z-20">
           Gateway to Smart Savings and Contributions

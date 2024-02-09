@@ -3,11 +3,10 @@ import React from 'react';
 
 import line from '../assets/line.svg';
 import mobline from '../assets/mobline.png';
-import MotionNav from './MotionNav';
 
 const Navbar = () => {
   return (
-    <MotionNav className="flex justify-center overflow-x-hidden relative z-50">
+    <nav className="flex justify-center overflow-x-hidden relative z-50">
       <div className="lg:max-w-7xl w-full">
         <div className="flex w-[90%] justify-between mx-auto pt-[26px] ">
           <div className="flex flex-row gap-2 items-center">
@@ -45,7 +44,7 @@ const Navbar = () => {
             className="lg:hidden mx-auto w-[90%]"
           /> */}
       </div>
-    </MotionNav>
+    </nav>
   );
 };
 
