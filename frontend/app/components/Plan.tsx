@@ -10,7 +10,10 @@ import { BackgroundGradient } from './BackgroundGradient';
 
 const Plan = () => {
   return (
-    <div className="flex flex-col gap-5 justify-center items-center lg:mt-[100px] mb-[150px] padding-x">
+    <div
+      id="pricing"
+      className="flex flex-col gap-5 justify-center items-center lg:mt-[100px] mb-[150px] padding-x"
+    >
       <TitleText
         textStyles={`text-[20px] sm:text-[22px] lg:text-[42px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px]  tracking-wide justify-center self-center text-center lg:leading-normal`}
       >
