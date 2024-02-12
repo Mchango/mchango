@@ -6,25 +6,32 @@ import PersonSvg from "../svgComponents/personSvg";
 import LeftArrowSvg from "../svgComponents/leftArrowSvg";
 import RightArrowSvg from "../svgComponents/rightArrowSvg";
 import CountTag from "./CountTag";
-import Options from "../components/Options";
+// import Options from "../components/Options";
 
 interface CountTag {
   count: boolean;
   admin: boolean;
 }
 
-// interface popUpType {
-//   id:string | null;
-// }
 export default function ParticipantListTable(props: CountTag): JSX.Element {
-  const [isOptionsOpen, setIsOptionsOpen] = useState<string | null>(null);
+  const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
+  const [clickedID, setClickedID] = useState<string | null>(null);
+  const [prevID, setPrevID] = useState<string | null>(null);
 
-  const handleOptions = (index: string) => {
-    // setIsOptionsOpen(!isOptionsOpen);
-    setIsOptionsOpen((prevState) => (prevState === index ? null : index));
+  const handlePrevState = (currentID: string) => {
+    if (currentID === clickedID) {
+      setPrevID(currentID);
+      console.log(`id ${clickedID} is clicked`);
+      setIsOptionsOpen(true);
+    } else if (clickedID === prevID) {
+      console.log(`id ${clickedID} clicked again`);
+      setIsOptionsOpen(false);
+    } else if (currentID !== clickedID) {
+      console.log("not the current  id");
+      setIsOptionsOpen(false);
+    }
   };
 
-  //   const tokens: Token[] = data;
   return (
     <div className="flex w-full flex-col">
       <p className="text-sky font-nunito text-3xl font-bold not-italic">
@@ -51,9 +58,9 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
           </tr>
         </thead>
         <tbody className="w-full">
-          {IconDetails().participants.map((item, index) => (
+          {IconDetails().participants.map((item) => (
             <tr
-              key={index}
+              key={item.id}
               className="w-full h-[59px] 	border-solid border-y-[1px] border-grey"
             >
               <td>{item.svg}</td>
@@ -66,18 +73,20 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
               {props.admin && (
                 <td className="w-[100px] ">
                   {
-                    <div onClick={() => handleOptions(item.id)}>
-                      <Options />
-                      {isOptionsOpen && (
-                        <div className="flex flex-col  gap-1 absolute w-[150px]">
-                          <div className="px-[4px] py-[5px] bg-redBtn rounded-[2px] items-center">
-                            <h2>Remove member</h2>
+                    <div onClick={() => handlePrevState(item.id)}>
+                      {item.option}
+                      <div>
+                        {isOptionsOpen && (
+                          <div className="flex flex-col gap-1 absolute w-[150px]">
+                            <div className="px-[4px] py-[5px] bg-redBtn rounded-[2px] items-center">
+                              <h2>Remove member</h2>
+                            </div>
+                            <div className="px-[4px] py-[5px] bg-purpleSmallDeep rounded-[2px] items-center">
+                              <h2>Message member</h2>
+                            </div>
                           </div>
-                          <div className="px-[4px] py-[5px] bg-purpleSmallDeep rounded-[2px] items-center">
-                            <h2>Message member</h2>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   }
                 </td>

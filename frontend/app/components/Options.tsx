@@ -1,13 +1,11 @@
-"use client";
 import React, { useState } from "react";
 import SmallDot from "../svgComponents/smallDot";
+import IconDetails from "./iconDetails";
 
 export default function Options() {
-  // const [popIndex, setPopIndex] = useState(null);
-
   return (
-    <div className="relative  w-full">
-      <div className=" relative cursor-pointer">
+    <div className="relative w-full">
+      <div className="relative cursor-pointer">
         <SmallDot />
         <SmallDot />
         <SmallDot />
