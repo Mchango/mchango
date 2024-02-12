@@ -1,17 +1,24 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import GatewayLanding from '../components/GatewayLanding';
 import MasteryHub from '../components/MasteryHub';
 import MobileNav from '../components/MobileNav';
 import Navbar from '../components/Navbar';
 import Plan from '../components/Plan';
 import SmartCrypto from '../components/SmartCrypto';
-
-/**
- * todo: work on the responsivnes of the landing page
- * todo: mobile view has been added to the figma file
- */
+import MetamaskPrompt from '../components/MetamaskPrompt';
 
 const Landing = () => {
-  return (
+  const [metamaskInstalled, setMetamaskInstalled] = useState(true);
+  useEffect(() => {
+    if (typeof window.ethereum === 'undefined') {
+      setMetamaskInstalled(false);
+    }
+  }, []);
+  return !metamaskInstalled ? (
+    <MetamaskPrompt />
+  ) : (
     <>
       <div className="flex justify-center overflow-x-hidden">
         <div className="w-full ">
