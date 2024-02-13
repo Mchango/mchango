@@ -1,55 +1,18 @@
-'use client';
-
 import Image from 'next/image';
 import React from 'react';
-import { useRouter } from 'next/navigation';
-
 import { MenuIcon, X } from 'lucide-react';
 import { useActiveContext } from '@/context/active-section-context';
 import { useWallet } from '@/context/connectWallet';
-import Link from 'next/link';
-
-const navItems = [
-  {
-    id: 1,
-    name: 'Sign In',
-    href: '/signin',
-  },
-  {
-    id: 2,
-    name: 'Pricing',
-    href: '#pricing',
-  },
-] as const;
+import { navItems } from '../data/constants';
+import useAppNavigation from '@/utils/landingNavigation';
 
 const Navbar = () => {
-  const router = useRouter();
   const { setIsMobileToggled, isMobileToggled } = useActiveContext();
-  const { connectWallet, wallet, account } = useWallet();
+  const { handleNavLinks } = useAppNavigation();
+  const { account } = useWallet();
 
   const toggleMenu = () => {
     setIsMobileToggled((prevIsMobileToggled) => !prevIsMobileToggled);
-  };
-
-  const handleNavLinks = {
-    handleGetStartedToggled: () => {
-      router.push('/signup');
-    },
-
-    handleSignInToggled: (routeName: string) => {
-      if (routeName === '/signin') {
-        try {
-          connectWallet();
-        } catch (error) {
-          throw new MetaMaskError();
-        }
-      } else if (routeName === '#pricing') {
-        const pricingSection = document.getElementById('pricing');
-        if (pricingSection) {
-          pricingSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    },
   };
 
   return (
@@ -62,7 +25,7 @@ const Navbar = () => {
               alt="Mchango_"
               width={50}
               height={50}
-              className="sm:w-[70px] sm:h-[70px]"
+              className="lg:w-[70px] lg:h-[70px]"
             />
           </div>
 
@@ -88,7 +51,7 @@ const Navbar = () => {
                 <React.Fragment key={item.id}>
                   <div className="flex flex-col gap-2 items-center group relative z-50">
                     <button
-                      className="text-white text-[14px] sm:text-[18px] sm:leading-normal leading-[16.3px] font-semibold tracking-[0.36px] font-satoshi text-center my-auto mr-[9px] lg:mr-[29px] cursor-pointer hover:text-white group:hover:scale-110px active:scale-95 transition-all duration-200 "
+                      className="text-white text-[14px] sm:text-[16px] lg:text-[18px] sm:leading-normal leading-[16.3px] font-semibold tracking-[0.36px] font-satoshi text-center my-auto mr-[9px] lg:mr-[29px] cursor-pointer hover:text-white group:hover:scale-110px active:scale-95 transition-all duration-200 "
                       onClick={() =>
                         handleNavLinks.handleSignInToggled(item.href)
                       }
@@ -101,7 +64,7 @@ const Navbar = () => {
               ))}
             </div>
             <button
-              className="border-[1px] fon-satoshi font-semibold border-[#008080] w-[fit-content]  rounded-[15px] text-[#FFFFFF] py-2 px-4 text-[14px] sm:text-[18px] tracking-[0.8px] hover:scale-110 active:scale-100px transition-all duration-200 hover:border-purple-400 hover:bg-[#008080] "
+              className="border-[1px] fon-satoshi font-semibold border-[#008080] w-[fit-content]  rounded-[15px] text-[#FFFFFF] py-2 px-4 text-[14px] sm:text-[16px] lg:text-[18px] tracking-[0.8px] hover:scale-110 active:scale-100px transition-all duration-200 hover:border-purple-400 hover:bg-[#008080] "
               onClick={() => handleNavLinks.handleGetStartedToggled()}
             >
               Get Started

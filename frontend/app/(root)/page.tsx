@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import Plan from '../components/Plan';
 import SmartCrypto from '../components/SmartCrypto';
 import MetamaskPrompt from '../components/MetamaskPrompt';
+import Footer from '../components/Footer';
 
 const Landing = () => {
   const [metamaskInstalled, setMetamaskInstalled] = useState(true);
@@ -34,6 +35,7 @@ const Landing = () => {
               <MasteryHub />
               <Plan />
             </div>
+            <Footer />
           </div>
         </div>
       </div>

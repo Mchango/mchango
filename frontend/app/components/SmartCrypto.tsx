@@ -13,7 +13,7 @@ const SmartCrypto = () => {
       <div className="flex justify-center mt-[70px] lg:mt-[76px]  ">
         <div className="w-full">
           <TitleText
-            textStyles={`text-[20px] sm:text-[22px] lg:text-[42px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px] mx-auto text-center tracking-wide lg:leading-normal `}
+            textStyles={`text-[20px]  lg:text-[42px] leading-[22px] font-semibold font-lexend  text-[#D9D9DB] lg:w-[734px] mx-auto text-center tracking-wide lg:leading-normal `}
           >
             <p>
               Smart Crypto Investing <br className="sm:hidden" />
