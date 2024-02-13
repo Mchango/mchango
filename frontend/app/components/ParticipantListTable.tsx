@@ -13,23 +13,47 @@ interface CountTag {
   admin: boolean;
 }
 
-export default function ParticipantListTable(props: CountTag): JSX.Element {
-  const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
-  const [clickedID, setClickedID] = useState<string | null>(null);
-  const [prevID, setPrevID] = useState<string | null>(null);
+interface DetailsIcon {
+  id: string;
+  name: string;
+  date: string;
+  svg: JSX.Element;
+  option: JSX.Element;
+}
 
-  const handlePrevState = (currentID: string) => {
-    if (currentID === clickedID) {
-      setPrevID(currentID);
-      console.log(`id ${clickedID} is clicked`);
-      setIsOptionsOpen(true);
-    } else if (clickedID === prevID) {
-      console.log(`id ${clickedID} clicked again`);
-      setIsOptionsOpen(false);
-    } else if (currentID !== clickedID) {
-      console.log("not the current  id");
-      setIsOptionsOpen(false);
+interface StateOfButtons {
+  [key: string]: boolean;
+}
+
+export default function ParticipantListTable(props: CountTag): JSX.Element {
+  //initiialize an empty object
+  const initialStateOfButtons: StateOfButtons = {};
+
+  //set defualt of every state of buttons to false
+  IconDetails().participants.forEach((button) => {
+    initialStateOfButtons[button.id] = false;
+  });
+
+  //create  state of buttons and pass the states to it
+  const [buttonsState, setButtonsState] = useState<StateOfButtons>(
+    initialStateOfButtons
+  );
+
+  //create function to handle state change by  id of buttons
+  const handleStateChange = (buttonClicked: string) => {
+    //create an empty  object to hold the updated state of buttons
+    const updatedStates: StateOfButtons = {};
+    //iterating through all the button states
+    for (const key in buttonsState) {
+      if (key !== buttonClicked) {
+        updatedStates[key] = false;
+      }
     }
+
+    setButtonsState({
+      ...updatedStates,
+      [buttonClicked]: !buttonsState[buttonClicked],
+    });
   };
 
   return (
@@ -73,10 +97,10 @@ export default function ParticipantListTable(props: CountTag): JSX.Element {
               {props.admin && (
                 <td className="w-[100px] ">
                   {
-                    <div onClick={() => handlePrevState(item.id)}>
+                    <div onClick={() => handleStateChange(item.id)}>
                       {item.option}
                       <div>
-                        {isOptionsOpen && (
+                        {buttonsState[item.id] && (
                           <div className="flex flex-col gap-1 absolute w-[150px]">
                             <div className="px-[4px] py-[5px] bg-redBtn rounded-[2px] items-center">
                               <h2>Remove member</h2>
