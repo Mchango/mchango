@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
+import ActiveContext from '@/context/active-section-context';
+import WalletProvider from '@/context/connectWallet';
+import { Toaster } from 'react-hot-toast';
 import './globals.css';
-// import { Nunito } from 'next/font/google'
 
 export const metadata: Metadata = {
   title: 'Mchango',
   description: 'A Rotating Savings & Contribution Platform',
 };
-// const nunito = Nunito({
-//   subsets: ['latin'],
-//   display: 'swap',
-// })
+
 export default function RootLayout({
   children,
 }: {
@@ -17,7 +16,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className=" font-nunito">{children}</body>
+      <body className=" font-nunito">
+        <Toaster position="top-center" />
+        <WalletProvider>
+          <ActiveContext>{children}</ActiveContext>
+        </WalletProvider>
+      </body>
     </html>
   );
 }

@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-type MotionNavProps = {
+type MotionElementProps = {
   children: React.ReactNode;
   className?: string; // Optional className prop
 };
@@ -13,9 +13,9 @@ const variants = {
   visible: { opacity: 1 },
 };
 
-const MotionNav = ({ children, className }: MotionNavProps) => {
+const MotionElement = ({ children, className }: MotionElementProps) => {
   return (
-    <motion.nav
+    <motion.p
       className={className} // Apply the className prop here
       variants={variants}
       initial="hidden"
@@ -28,8 +28,8 @@ const MotionNav = ({ children, className }: MotionNavProps) => {
       }}
     >
       {children}
-    </motion.nav>
+    </motion.p>
   );
 };
 
-export default MotionNav;
+export default MotionElement;

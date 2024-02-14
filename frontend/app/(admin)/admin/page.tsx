@@ -1,4 +1,4 @@
-import AdminComponent from "@/app/components/admin/AdminComponent";
+import AdminComponent from '@/app/components/admin/AdminComponent';
 
 export default async function AdminPage() {
   return (

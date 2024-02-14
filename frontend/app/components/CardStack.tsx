@@ -55,14 +55,14 @@ export const CardStack = ({
               zIndex: cards.length - index, //  decrease z-index for the cards that are behind
             }}
           >
-            <div className="font-medium font-work  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-500 ">
+            <div className="font-medium font-work  bg-clip-text text-transparent transition-all bg-gradient-to-b from-neutral-200 to-neutral-500 ">
               {card.content}
             </div>
             <div>
               <p className="text-gray-300 font-lexend font-extrabold ">
                 {card.name}
               </p>
-              <p className="text-neutral-400 font-normal font-Azeret ">
+              <p className="text-neutral-400 text-[12px] sm:text-[14px] font-Azeret ">
                 {card.designation}
               </p>
             </div>

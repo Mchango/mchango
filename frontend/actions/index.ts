@@ -220,4 +220,10 @@ const startGroupContribution = async (
   } catch (error) {}
 }
 
-export { createUser, createUserGroup, joinUserGroup, premiumSubscription }
+export {
+  createUser,
+  createUserGroup,
+  joinUserGroup,
+  premiumSubscription,
+  startGroupContribution,
+}
