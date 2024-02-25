@@ -15,6 +15,11 @@ const Navbar = () => {
     setIsMobileToggled((prevIsMobileToggled) => !prevIsMobileToggled);
   };
 
+  /**
+   *
+   * @param address - address to be truncated
+   * @returns truncated address
+   */
   const truncate = (address: string) => {
     return `${address.substring(0, 6)}...${address.substring(
       address.length - 4,
@@ -45,7 +50,6 @@ const Navbar = () => {
           </div>
 
           {/**Mobile Menu */}
-
           <div className="block sm:hidden">
             {isMobileToggled ? (
               <X width={30} height={30} color="white" onClick={toggleMenu} />
