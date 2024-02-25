@@ -1,3 +1,5 @@
+"use server"
+
 import { connectDB } from './mongoose'
 import Member from '../lib/models/Member.model'
 import Group from '../lib/models/Group.model'
@@ -1318,4 +1320,5 @@ export {
   handleGetNumberOfGroupsCreated,
   handleGetGroupCollateralValue,
   handleGetMemberReputationPoint,
+  MemberDB,
 }
