@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { MenuIcon, X } from 'lucide-react';
 import { useActiveContext } from '@/context/active-section-context';
 import { useWallet } from '@/context/connectWallet';
-import { navItems } from '../data/constants';
 import useAppNavigation from '@/utils/landingNavigation';
 
 const Navbar = () => {
