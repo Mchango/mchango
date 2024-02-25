@@ -1,3 +1,5 @@
+'use server'
+
 import * as dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
