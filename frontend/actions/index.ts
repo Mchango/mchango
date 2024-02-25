@@ -1,3 +1,4 @@
+'use server'
 import { connectDB } from '@/database/mongoose'
 import {
   createMember,
@@ -9,6 +10,7 @@ import {
   handleGetMemberReputationPoint,
   subscribePremium,
   startContribution,
+  MemberDB,
 } from '@/database'
 import {
   createNewGroup,
@@ -20,6 +22,27 @@ import {
   StartContribution,
 } from '@/contract-actions'
 import { StartContributionType } from '@/lib/types'
+import Member from '@/lib/models/Member.model'
+
+const connectAndValidate = async (address: string) => {
+  await connectDB()
+  let isMember = false
+  try {
+    if (!address) throw new Error('Invalid address')
+    const member = await MemberDB.getMemberByAddress(address)
+
+    if (member != null || member != undefined) {
+      isMember = true
+    } else {
+      throw new MemberNotFoundError()
+    }
+
+    return isMember
+  } catch (error) {
+    console.error(error)
+    throw new Error('An error occurred while validating member')
+  }
+}
 
 const createUser = async (name: string) => {
   await connectDB()
@@ -226,4 +249,5 @@ export {
   joinUserGroup,
   premiumSubscription,
   startGroupContribution,
+  connectAndValidate,
 }
