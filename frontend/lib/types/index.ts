@@ -1,7 +1,11 @@
 export type CreateMemberType = {
   id: Number
-  name: String
-  memberAddress: String
+  name: string
+  email: string
+  username: string
+  country: string
+  phone: string
+  memberAddress: string
 }
 
 export type GroupType = {
