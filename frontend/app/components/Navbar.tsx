@@ -70,17 +70,9 @@ const Navbar = () => {
                 <div className="flex flex-col gap-2 relative group">
                   <button
                     className="text-white text-[14px] sm:text-[16px] lg:text-[18px] sm:leading-normal leading-[16.3px] font-semibold tracking-[0.36px] font-satoshi text-center my-auto mr-[9px] lg:mr-[29px] cursor-pointer hover:text-white group:hover:scale-110px active:scale-95 transition-all duration-200 "
-                    onClick={() =>
-                      handleNavLinks.handleSignInToggled('/signin')
-                    }
+                    onClick={() => handleNavLinks.handleGetStartedToggled()}
                   >
-                    {account ? (
-                      <span className="builbtn-grad font-Azeret">
-                        {truncate(account)}
-                      </span>
-                    ) : (
-                      <span>Sign In</span>
-                    )}
+                    Get Started
                   </button>
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-200 group-hover:w-[80%] "></span>
                 </div>
@@ -101,9 +93,15 @@ const Navbar = () => {
             </div>
             <button
               className="border-[1px] fon-satoshi font-semibold border-[#008080] w-[fit-content]  rounded-[15px] text-[#FFFFFF] py-2 px-4 text-[14px] sm:text-[16px] lg:text-[18px] tracking-[0.8px] hover:scale-110 active:scale-100px transition-all duration-200 hover:border-purple-400 hover:bg-[#008080] "
-              onClick={() => handleNavLinks.handleGetStartedToggled()}
+              onClick={() => handleNavLinks.handleSignInToggled('/signin')}
             >
-              Get Started
+              {account ? (
+                <span className="builbtn-grad font-Azeret">
+                  {truncate(account)}
+                </span>
+              ) : (
+                <span>Sign In</span>
+              )}
             </button>
           </div>
         </div>
