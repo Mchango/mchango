@@ -53,6 +53,10 @@ const MemberDB = {
     return await Member.create({
       id: member.id,
       name: member.name,
+      email: member.email,
+      username: member.username,
+      country: member.country,
+      phone: member.phone,
       profilePicture: 'https://i.imgur.com/34g785y.png',
       memberAddress: member.memberAddress,
       amountDonated: 0,
@@ -430,6 +434,10 @@ const createMember = async (member: CreateMemberType) => {
   validateMemberInput({
     id: member.id,
     name: member.name,
+    email: member.email,
+    username: member.username,
+    country: member.country,
+    phone: member.phone,
     memberAddress: member.memberAddress,
   })
   try {
