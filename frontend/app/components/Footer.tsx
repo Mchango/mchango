@@ -32,7 +32,7 @@ const Footer: React.FC = () => {
             className="bg-transparent placeholder:text-gray-300 text-white font-Azeret max-sm:text-[13px] md:text-[15px] lg:text-[17px] outline-none border-none"
           />
           <div>
-            <Submit_Btn />
+            <Submit_Btn backgroundColor="bg-white" name="subscribe" />
           </div>
         </form>
         <div className="hidden lg:flex items-center gap-5">
