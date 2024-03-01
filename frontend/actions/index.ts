@@ -22,6 +22,7 @@ import {
   StartContribution,
 } from '@/contract-actions'
 import { StartContributionType } from '@/lib/types'
+import { handleGetSignUpDataFromForm } from '@/utils/subscription'
 import Member from '@/lib/models/Member.model'
 
 const connectAndValidate = async (address: string) => {
@@ -44,7 +45,7 @@ const connectAndValidate = async (address: string) => {
   }
 }
 
-const createUser = async (name: string) => {
+const createUser = async (formData: FormData) => {
   await connectDB()
   if (typeof window !== 'undefined' && (window as any).ethereum) {
     try {
@@ -53,10 +54,22 @@ const createUser = async (name: string) => {
         throw new Error('An error occurred while creating new member')
       }
 
+      const [
+        name,
+        email,
+        username,
+        country,
+        phone,
+      ] = await handleGetSignUpDataFromForm(formData)
+
       await createMember({
         id: formatted,
-        name: name,
-        memberAddress: signerAddress,
+        name: name as string,
+        email: email as string,
+        username: username as string,
+        country: country as string,
+        phone: phone as string,
+        memberAddress: signerAddress as string,
       })
 
       return console.log(
@@ -244,7 +257,6 @@ const startGroupContribution = async (
 }
 
 export {
-  createUser,
   createUserGroup,
   joinUserGroup,
   premiumSubscription,
