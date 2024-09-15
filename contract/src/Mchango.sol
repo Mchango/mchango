@@ -65,6 +65,8 @@ contract Mchango {
     mapping(address => bool) private isPremium;
     mapping(address => Member) private addressToMember;
     mapping(address => bool) public isMember;
+    mapping(address => mapping(uint256 => bool)) public isGroupMember;
+    mapping(address => mapping(uint256 => bool)) public isEligibleMember;
 
     /**Events */
     event inContributionPhase(uint _id);
