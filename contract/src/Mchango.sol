@@ -39,14 +39,9 @@ contract Mchango {
     struct Group {
         uint256 id;
         uint256 memberCounter;
-        uint256 collateral;
-        uint256 contributionValue;
+        string collateral;
         address admin;
         uint256 balance;
-        mapping(address => bool) isGroupMember;
-        mapping(address => bool) isEligibleMember;
-        mapping(address => uint256) collateralTracking;
-        State currentState;
     }
 
     struct Member {
