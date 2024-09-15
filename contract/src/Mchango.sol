@@ -23,12 +23,6 @@ contract Mchango {
     error Mchango_NotAllFundsDisbursed();
     error Mchango_GroupDoesntExist();
 
-    /**Type Declarations */
-    enum State {
-        initialization,
-        contribution,
-        rotation
-    }
 
     enum Tier {
         basic,
