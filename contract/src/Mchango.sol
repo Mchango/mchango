@@ -17,7 +17,6 @@ contract Mchango {
     error Mchango_UpgradeTier();
     error Mchango_NotEnoughCollateral();
     error Mchango_NotEnoughReputation();
-    error Mchango_GroupStateError(State currentState);
     error Mchango_MaxMembersReached();
     error Mchango_NotAPremiumSubscriber();
     error Mchango_NotAllFundsDisbursed();
@@ -50,17 +49,16 @@ contract Mchango {
     uint256 public premiumFee;
     uint256 public exclusiveFee;
 
-    uint256[] private keys;
-    uint256[] private memberKeys;
-    address[] private admins;
-    address public immutable Owner;
 
+    address public immutable Owner;
     mapping(uint256 => Group) private idToGroup;
     mapping(address => bool) private isPremium;
     mapping(address => Member) private addressToMember;
     mapping(address => bool) public isMember;
     mapping(address => mapping(uint256 => bool)) public isGroupMember;
     mapping(address => mapping(uint256 => bool)) public isEligibleMember;
+    mapping(address => mapping(uint256 => bool)) public isGroupAdmin;
+
 
     /**Events */
     event inContributionPhase(uint _id);
@@ -198,11 +196,6 @@ contract Mchango {
         return addressToMember[_address].reputation;
     }
 
-    function getGroupState(uint256 _id) internal view returns (State) {
-        Group storage group = idToGroup[_id];
-
-        return group.currentState;
-    }
 
     function makePayment(address recipient, uint256 _value) internal {
         (bool success, ) = payable(recipient).call{value: _value}("");
@@ -264,7 +257,6 @@ contract Mchango {
             reputation: 1
         });
         addressToMember[_address] = newMember;
-        memberKeys.push(member_id);
         emit memberCreated(_address);
 
         return member_id;
@@ -274,29 +266,22 @@ contract Mchango {
      * @dev Refactored and made compatible with backend operations
      */
     function createGroup(
-        uint256 _collateralValue
-    ) external memberCompliance(msg.sender) returns (uint256 _id) {
+        string memory _collateralValueInUsd
+    ) external memberCompliance(msg.sender) {
         address _admin = msg.sender;
 
         counter++;
         uint256 id = counter;
 
-        Group storage newGroup = returnGroup(id);
-        newGroup.id = id;
-        newGroup.memberCounter = 1;
-        newGroup.collateral = _collateralValue + 0 ether;
-        newGroup.admin = _admin;
-        newGroup.balance = 0;
-        newGroup.currentState = State.initialization;
-        newGroup.isGroupMember[_admin] = true;
-        newGroup.isEligibleMember[_admin] = true;
-
-        keys.push(id);
-        admins.push(_admin);
+        Group memory newGroup = Group({
+            id: id,
+            memberCounter: 1,
+            balance: 0,
+            collateral: _collateralValueInUsd,
+            admin: msg.sender
+        });
 
         emit hasCreatedGroup(_admin, id);
-
-        return id;
     }
 
     /**
@@ -309,7 +294,7 @@ contract Mchango {
         view
         idCompliance(_id)
         groupExists(_id)
-        returns (uint256, uint256, uint256, uint256, address, State)
+        returns (uint256, uint256, uint256, uint256, address)
     {
         Group storage group = idToGroup[_id];
 
