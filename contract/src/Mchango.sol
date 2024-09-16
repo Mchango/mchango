@@ -64,6 +64,7 @@ contract Mchango {
     uint256 public memberCounter;
     uint256 public premiumFee;
     uint256 public exclusiveFee;
+    uint256 private immutable FREE_PLAN_LIMIT = 5;
 
 
     address public immutable Owner;
@@ -79,7 +80,7 @@ contract Mchango {
     event inContributionPhase(uint _id);
     event inRotationPhase(uint _id);
     event rotationEnded(uint _id);
-    event memberCreated(address indexed member);
+    event memberCreated(address indexed _member, uint256 indexed _id);
     event memberKicked(address indexed _memberAddress);
     event subscriptionExpired(address indexed _subscriber);
     event hasDonated(address indexed _participant, uint256 indexed _amount);
@@ -221,7 +222,7 @@ contract Mchango {
     ) internal view returns (uint256) {
         uint freePlanMemberLimit;
         if (!isSubscriberPremium(_memberAddress)) {
-            freePlanMemberLimit = 10;
+            freePlanMemberLimit = FREE_PLAN_LIMIT;
         }
 
         return freePlanMemberLimit;
@@ -229,31 +230,20 @@ contract Mchango {
 
     /***
      * @dev Refactored and made compatible with backend operations
+     * @notice This function has not been implemented
      */
     function penalize(
         uint256 _id,
         uint256 _contributionValue,
         address _memberAddress
     ) external {
-        Group storage group = idToGroup[_id];
 
-        if (group.collateralTracking[_memberAddress] >= _contributionValue) {
-            group.collateralTracking[_memberAddress] -= _contributionValue;
-            addressToMember[_memberAddress].reputation -= 1;
-            group.isEligibleMember[_memberAddress] = false;
-        } else {
-            group.contributionValue - group.collateralTracking[_memberAddress];
-            addressToMember[_memberAddress].reputation -= 2;
-            group.isGroupMember[_memberAddress] = false;
-
-            emit memberKicked(_memberAddress);
-        }
     }
 
     /***
      * @dev Refactored and made compatible with backend operations
      */
-    function createMember(address _address) external returns (uint256) {
+    function createMember(address _address) external  {
         if (_address == address(0)) {
             revert Mchango_BlankCompliance();
         }
@@ -269,9 +259,7 @@ contract Mchango {
             reputation: 1
         });
         addressToMember[_address] = newMember;
-        emit memberCreated(_address);
-
-        return member_id;
+        emit memberCreated(_address, member_id);
     }
 
     function checkCollateral(address _owner, address _tokenAddress) internal view returns (uint256) {
