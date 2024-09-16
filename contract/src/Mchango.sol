@@ -354,9 +354,9 @@ contract Mchango {
     ) external payable idCompliance(_id) groupExists(_id) memberCompliance(msg.sender) {
         Group memory group = returnGroup(_id);
         address member = msg.sender;
-        uint256 collateralValue = checkCollateral(member, _tokenAddress );
+        uint256 collateralValue = checkCollateral(member, _tokenAddress);
 
-        if(!isGroupMember[member][_id]) {
+        if (!isGroupMember[member][_id]) {
             revert Mchango_NotAGroupMember();
         }
 
@@ -370,7 +370,7 @@ contract Mchango {
         }
 
         idToGroup[_id].balance += msg.value;
-        if(!isEligibleMember[member][_id]) {
+        if (!isEligibleMember[member][_id]) {
             isEligibleMember[member][_id] = true;
         }
 
@@ -389,7 +389,7 @@ contract Mchango {
         if (!isEligibleMember[_memberAddress][_id]) {
             revert Mchango_NotAnEligibleMember();
         }
-        group.balance = 0;
+        idToGroup[_id].balance = 0;
 
         makePayment(_memberAddress, _amount);
         emit hasReceivedFunds(_memberAddress, _amount);
