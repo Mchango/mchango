@@ -81,7 +81,7 @@ contract Mchango {
     event inRotationPhase(uint _id);
     event rotationEnded(uint _id);
     event memberCreated(address indexed _member, uint256 indexed _id);
-    event memberKicked(address indexed _memberAddress);
+    event memberKicked(address indexed _memberAddress, uint256 indexed _groupId);
     event subscriptionExpired(address indexed _subscriber);
     event hasDonated(address indexed _participant, uint256 indexed _amount);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
@@ -111,7 +111,7 @@ contract Mchango {
     /**Modifiers */
     modifier onlyAdmin(uint256 _id) {
         require(
-            msg.sender == idToGroup[_id].admin,
+            msg.sender == idToGroup[_id].admin || msg.sender == Owner,
             "only admin can call this function"
         );
         _;
@@ -137,8 +137,7 @@ contract Mchango {
     }
 
     modifier idCompliance(uint256 _id) {
-        require(_id <= counter, "identifier can not be blank");
-
+        require(_id <= counter && _id != 0, "identifier can not be blank");
         _;
     }
 
@@ -343,20 +342,16 @@ contract Mchango {
         emit joinedGroup(_memberAddress, _id);
     }
 
-    /**
-     * @dev Refactored and made compatible with backend operations
-     */
-
 
     function kickGroupMember(
         address _groupMemberAddress,
         uint256 _id
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        Group storage group = returnGroup(_id);
+        idToGroup[_id].memberCounter--;
+        isGroupMember[_groupMemberAddress][_id] = false;
+        isEligibleMember[_groupMemberAddress][_id] = false;
 
-        group.isGroupMember[_groupMemberAddress] = false;
-        group.isEligibleMember[_groupMemberAddress] = false;
-        emit memberKicked(_groupMemberAddress);
+        emit memberKicked(_groupMemberAddress, _id);
     }
 
     // todo: this func is pending testing
