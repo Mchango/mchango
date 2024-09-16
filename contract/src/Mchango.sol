@@ -379,62 +379,6 @@ contract Mchango {
         emit hasDonated(msg.sender, msg.value);
     }
 
-    /**
-     * @dev refactored and made compatible with backend operations
-     */
-    function startContribution(
-        uint256 _id,
-        uint256 _contributionValue
-    ) external idCompliance(_id) onlyAdmin(_id) {
-        Group storage group = returnGroup(_id);
-        if (group.currentState == State.contribution) {
-            revert Mchango__GroupAlreadyInContributionState();
-        }
-        group.currentState = State.contribution;
-        group.contributionValue = _contributionValue;
-
-        emit inContributionPhase(_id);
-    }
-
-    /**
-     * @notice //!Functionality has been tested
-     * ? The purpose of this function is to set the enum state to rotation
-     */
-    function startRotation(
-        uint256 _id
-    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        Group storage group = returnGroup(_id);
-        State state = group.currentState;
-        if (state == State.rotation) {
-            revert Mchango__GroupAlreadyInRotationState();
-        }
-
-        if (state != State.contribution && state == State.initialization) {
-            revert Mchango_GroupStateError(state);
-        }
-        group.currentState = State.rotation;
-
-        emit inRotationPhase(_id);
-    }
-
-    /**
-     * todo: this function is pending testing
-     * @dev //? this function ends the rotation period
-     */
-    function endRotation(
-        uint256 _id
-    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        Group storage group = idToGroup[_id];
-
-        //? require all the funds in rotation has been disbursed
-        if (group.balance > 0) {
-            revert Mchango_NotAllFundsDisbursed();
-        }
-        //? Reset the state to initialization
-        group.currentState = State.initialization;
-
-        emit rotationEnded(_id);
-    }
 
     /**
      * @dev refactored and made compatible with backend operations
