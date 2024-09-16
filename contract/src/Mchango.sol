@@ -130,31 +130,7 @@ contract Mchango {
     }
 
 
-    function subscribePremium() external payable subscriptionCompliance {
-        uint256 amount = msg.value;
-        if (isMember[msg.sender] != true) {
-            revert Mchango_NotAMember();
-        }
 
-        if (isPremium[msg.sender] == true) {
-            revert Mchango_AlreadyAPremiumSubscriber();
-        }
-
-        isPremium[msg.sender] = true;
-        makePayment(address(this), premiumFee);
-
-        emit hasSubscribed(msg.sender, amount);
-    }
-
-    function unSubscribePremiumMember(address _subscriberAddress) external {
-        if (!isPremium[_subscriberAddress]) {
-            revert Mchango_NotAPremiumSubscriber();
-        }
-
-        isPremium[_subscriberAddress] = false;
-
-        emit subscriptionExpired(_subscriberAddress);
-    }
 
     function isSubscriberPremium(address _address) public view returns (bool) {
         return isPremium[_address];
@@ -172,6 +148,8 @@ contract Mchango {
         Member memory member = addressToMember[_address];
         return (member.id, member.memberAddress);
     }
+
+
 
     function returnGroup(uint256 _id) internal view groupExists(_id) returns (Group memory) {
         return idToGroup[_id];
@@ -199,6 +177,33 @@ contract Mchango {
         return remainingAllowance;
     }
 
+
+
+    function subscribePremium() external payable subscriptionCompliance {
+        uint256 amount = msg.value;
+        if (isMember[msg.sender] != true) {
+            revert Mchango_NotAMember();
+        }
+
+        if (isPremium[msg.sender] == true) {
+            revert Mchango_AlreadyAPremiumSubscriber();
+        }
+
+        isPremium[msg.sender] = true;
+        makePayment(address(this), premiumFee);
+
+        emit hasSubscribed(msg.sender, amount);
+    }
+
+    function unSubscribePremiumMember(address _subscriberAddress) external {
+        if (!isPremium[_subscriberAddress]) {
+            revert Mchango_NotAPremiumSubscriber();
+        }
+
+        isPremium[_subscriberAddress] = false;
+
+        emit subscriptionExpired(_subscriberAddress);
+    }
 
     function penalize(
         uint256 _id,
