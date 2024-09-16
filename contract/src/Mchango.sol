@@ -170,6 +170,16 @@ contract Mchango {
         emit hasSubscribed(msg.sender, amount);
     }
 
+    function unSubscribePremiumMember(address _subscriberAddress) external {
+        if (!isPremium[_subscriberAddress]) {
+            revert Mchango_NotAPremiumSubscriber();
+        }
+
+        isPremium[_subscriberAddress] = false;
+
+        emit subscriptionExpired(_subscriberAddress);
+    }
+
     function isSubscriberPremium(address _address) public view returns (bool) {
         return isPremium[_address];
     }
@@ -318,7 +328,7 @@ contract Mchango {
         }
 
         Group memory group = returnGroup(_id);
-        if (group.memberCounter >= getMaxMembers(_memberAddress)) {
+        if (!isSubscriberPremium(_memberAddress) &&  group.memberCounter >= getMaxMembers(_memberAddress)) {
             revert Mchango_MaxMembersReached();
         }
 
@@ -336,15 +346,7 @@ contract Mchango {
     /**
      * @dev Refactored and made compatible with backend operations
      */
-    function unSubscribePremiumMember(address _subscriberAddress) external {
-        if (!isPremium[_subscriberAddress]) {
-            revert Mchango_NotAPremiumSubscriber();
-        }
 
-        isPremium[_subscriberAddress] = false;
-
-        emit subscriptionExpired(_subscriberAddress);
-    }
 
     function kickGroupMember(
         address _groupMemberAddress,
