@@ -145,14 +145,13 @@ contract Mchango {
             revert Mchango_AlreadyAPremiumSubscriber();
         }
 
-        address subscriberAddress = msg.sender;
 
         uint256 amount = msg.value;
         makePayment(address(this), premiumFee);
 
-        isPremium[subscriberAddress] = true;
+        isPremium[msg.sender] = true;
 
-        emit hasSubscribed(subscriberAddress, amount);
+        emit hasSubscribed(msg.sender, amount);
     }
 
     function isSubscriberPremium(address _address) public view returns (bool) {
@@ -262,9 +261,6 @@ contract Mchango {
         return member_id;
     }
 
-    /**
-     * @dev Refactored and made compatible with backend operations
-     */
     function createGroup(
         string memory _collateralValueInUsd
     ) external memberCompliance(msg.sender) {
