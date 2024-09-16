@@ -234,8 +234,7 @@ contract Mchango {
         isMember[_address] = true;
         Member memory newMember = Member({
             id: member_id,
-            memberAddress: _address,
-            reputation: 1
+            memberAddress: _address
         });
         addressToMember[_address] = newMember;
         emit memberCreated(_address, member_id);
@@ -249,7 +248,7 @@ contract Mchango {
         counter++;
         uint256 id = counter;
         isGroupAdmin[msg.sender][id] = true;
-        Group memory newGroup = Group({
+        Group({
             id: id,
             memberCounter: 1,
             balance: 0,
@@ -358,9 +357,6 @@ contract Mchango {
         uint256 _amount,
         address _memberAddress
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        Group memory group = idToGroup[_id];
-
-
         if (!isEligibleMember[_memberAddress][_id]) {
             revert Mchango_NotAnEligibleMember();
         }
