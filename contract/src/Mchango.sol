@@ -48,7 +48,7 @@ contract Mchango {
     struct Group {
         uint256 id;
         uint256 memberCounter;
-        string collateral;
+        uint256 collateral;
         address admin;
         uint256 balance;
     }
@@ -228,6 +228,12 @@ contract Mchango {
         return freePlanMemberLimit;
     }
 
+    function checkCollateral(address _owner, address _tokenAddress) internal view returns (uint256) {
+        IERC20 token = IERC20(_tokenAddress);
+        uint256 remainingAllowance = token.allowance(_owner, address(this));
+        return remainingAllowance;
+    }
+
     /***
      * @dev Refactored and made compatible with backend operations
      * @notice This function has not been implemented
@@ -236,14 +242,10 @@ contract Mchango {
         uint256 _id,
         uint256 _contributionValue,
         address _memberAddress
-    ) external {
+    ) external {}
 
-    }
 
-    /***
-     * @dev Refactored and made compatible with backend operations
-     */
-    function createMember(address _address) external  {
+    function createMember(address _address) external {
         if (_address == address(0)) {
             revert Mchango_BlankCompliance();
         }
@@ -262,96 +264,71 @@ contract Mchango {
         emit memberCreated(_address, member_id);
     }
 
-    function checkCollateral(address _owner, address _tokenAddress) internal view returns (uint256) {
-        IERC20 token = IERC20(_tokenAddress);
-        uint256 remainingAllowance = token.allowance(_owner, address(this));
-        return remainingAllowance;
-    }
-
     function createGroup(
-        string memory _collateralValueInUsd
+        uint256 _collateralValueInUsd
     ) external memberCompliance(msg.sender) {
         address _admin = msg.sender;
 
         counter++;
         uint256 id = counter;
-
+        isGroupAdmin[msg.sender][id] = true;
         Group memory newGroup = Group({
             id: id,
             memberCounter: 1,
             balance: 0,
             collateral: _collateralValueInUsd,
-            admin: msg.sender
+            admin: _admin
         });
 
         emit hasCreatedGroup(_admin, id);
     }
 
-    /**
-     * @dev Refactored and made compatible with backend operations
-     */
-    function getGroupDetails(
-        uint256 _id
-    )
-    external
-    view
+
+    function getGroupDetails(uint256 _id) external view
     idCompliance(_id)
     groupExists(_id)
-    returns (uint256, uint256, uint256, uint256, address)
+    returns (address, uint256, uint256, uint256)
     {
-        Group storage group = idToGroup[_id];
-
+        Group memory group = idToGroup[_id];
         return (
-            group.collateral,
-            group.contributionValue,
-            group.balance,
-            group.memberCounter,
             group.admin,
-            group.currentState
+            group.collateral,
+            group.balance,
+            group.memberCounter
         );
     }
 
-    /**
-     * @dev Refactored and made compatible with backend operations
-     */
+
     function joinGroup(
         address _memberAddress,
+        address _tokenAddress,
         uint256 _id,
-        uint256 _groupCollateralValue,
         uint256 _reputationPoint
     )
     external
-    payable
     memberCompliance(_memberAddress)
     idCompliance(_id)
     groupExists(_id)
     {
+        if (isGroupMember[_memberAddress][_id]) {
+            revert Mchango_AlreadyAMember();
+        }
         if (_reputationPoint < 1) {
             revert Mchango_NotEnoughReputation();
         }
 
-        Group storage group = returnGroup(_id);
-
-        if (msg.value < _groupCollateralValue) {
-            revert Mchango_NotEnoughCollateral();
-        }
-        if (group.currentState != State.initialization) {
-            revert Mchango_GroupStateError(group.currentState);
-        }
-
-        if (group.isGroupMember[_memberAddress]) {
-            revert Mchango_AlreadyAMember();
-        }
-
-        //? Check if the group has reached its maximum number of members
+        Group memory group = returnGroup(_id);
         if (group.memberCounter >= getMaxMembers(_memberAddress)) {
             revert Mchango_MaxMembersReached();
         }
 
-        group.memberCounter++;
-        group.isGroupMember[_memberAddress] = true;
-        makePayment(address(this), msg.value);
-        group.collateralTracking[_memberAddress] = msg.value;
+        uint256 allowance = checkCollateral(_memberAddress, _tokenAddress);
+        if (allowance < group.collateral) {
+            revert Mchango_NotEnoughCollateral();
+        }
+
+        idToGroup[_id].memberCounter++;
+        isGroupMember[_memberAddress][_id] = true;
 
         emit joinedGroup(_memberAddress, _id);
     }
