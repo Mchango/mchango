@@ -28,7 +28,7 @@ contract Mchango {
     error Mchango_AlreadyAMember();
     error Mchango_NotAnEligibleMember();
     error Mchango_NotAGroupMember();
-    error Mchango_TransactionFailed();
+    error Mchango_TransactionFailed(string _msg);
     error Mchango_BlankCompliance();
     error Mchango_UpgradeTier();
     error Mchango_NotEnoughCollateral();
@@ -56,7 +56,6 @@ contract Mchango {
     struct Member {
         uint id;
         address memberAddress;
-        uint256 reputation;
     }
 
     /**State Variables */
@@ -202,10 +201,10 @@ contract Mchango {
     )
     public
     view
-    returns (uint256, uint256, address)
+    returns (uint256, address)
     {
         Member memory member = addressToMember[_address];
-        return (member.id, member.reputation, member.memberAddress);
+        return (member.id, member.memberAddress);
     }
 
     function returnGroup(
@@ -214,15 +213,10 @@ contract Mchango {
         return idToGroup[_id];
     }
 
-    function increaseReputation(address _address) internal returns (uint256) {
-        addressToMember[_address].reputation++;
-        return addressToMember[_address].reputation;
-    }
-
     function makePayment(address recipient, uint256 _value) internal {
         (bool success,) = payable(recipient).call{value: _value}("");
         if (!success) {
-            revert Mchango_TransactionFailed();
+            revert Mchango_TransactionFailed('Payment Failed');
         }
     }
 
@@ -327,7 +321,7 @@ contract Mchango {
         }
 
         Group memory group = returnGroup(_id);
-        if (!isSubscriberPremium(_memberAddress) &&  group.memberCounter >= getMaxMembers(_memberAddress)) {
+        if (!isSubscriberPremium(_memberAddress) && group.memberCounter >= getMaxMembers(_memberAddress)) {
             revert Mchango_MaxMembersReached();
         }
 
@@ -342,7 +336,6 @@ contract Mchango {
         emit joinedGroup(_memberAddress, _id);
     }
 
-
     function kickGroupMember(
         address _groupMemberAddress,
         uint256 _id
@@ -354,42 +347,35 @@ contract Mchango {
         emit memberKicked(_groupMemberAddress, _id);
     }
 
-    // todo: this func is pending testing
-    function contribute(
-        uint256 _id
-    ) external payable idCompliance(_id) groupExists(_id) {
-        Group storage group = returnGroup(_id);
 
-        if (group.currentState == State.initialization) {
-            revert Mchango_GroupStateError(group.currentState);
+    function contribute(
+        uint256 _id,
+        uint256 _contributionValue,
+        address _tokenAddress
+    ) external payable idCompliance(_id) groupExists(_id) memberCompliance(msg.sender) {
+        Group memory group = returnGroup(_id);
+        address member = msg.sender;
+        uint256 collateralValue = checkCollateral(member, _tokenAddress );
+
+        if(!isGroupMember[member][_id]) {
+            revert Mchango_NotAGroupMember();
         }
 
-        if (msg.value < group.contributionValue) {
+        if (collateralValue < group.collateral) {
+            isEligibleMember[member][_id] = false;
+            revert Mchango_NotEnoughCollateral();
+        }
+
+        if (msg.value < _contributionValue) {
             revert Mchango_InsufficientContributionAmount();
         }
 
-        //? Check if the sender is eligible to contribute
-        if (getGroupState(_id) == State.contribution) {
-            if (!group.isGroupMember[msg.sender]) {
-                revert Mchango_NotAGroupMember();
-            }
-
-            group.balance += msg.value;
-            group.isEligibleMember[msg.sender] = true;
-
-            makePayment(address(this), msg.value);
-
-            //? Add the sender to the eligible members list
-        } else if (getGroupState(_id) == State.rotation) {
-            if (!group.isEligibleMember[msg.sender]) {
-                revert Mchango_NotAnEligibleMember();
-            }
-
-            group.balance += msg.value;
-
-            makePayment(address(this), msg.value);
+        idToGroup[_id].balance += msg.value;
+        if(!isEligibleMember[member][_id]) {
+            isEligibleMember[member][_id] = true;
         }
 
+        makePayment(address(this), msg.value);
         emit hasDonated(msg.sender, msg.value);
     }
 
