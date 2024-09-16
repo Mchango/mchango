@@ -192,7 +192,6 @@ contract Mchango {
     )
     public
     view
-    memberCompliance(_address)
     returns (uint256, uint256, address)
     {
         Member memory member = addressToMember[_address];
@@ -201,7 +200,7 @@ contract Mchango {
 
     function returnGroup(
         uint256 _id
-    ) internal view groupExists(_id) returns (Group storage) {
+    ) internal view groupExists(_id) returns (Group memory) {
         return idToGroup[_id];
     }
 
