@@ -39,12 +39,6 @@ contract Mchango {
     error Mchango_GroupDoesntExist();
 
 
-    enum Tier {
-        basic,
-        premium,
-        exclusive
-    }
-
     struct Group {
         uint256 id;
         uint256 memberCounter;
@@ -76,25 +70,16 @@ contract Mchango {
     mapping(address => mapping(uint256 => bool)) public isGroupAdmin;
 
     /**Events */
-    event inContributionPhase(uint _id);
-    event inRotationPhase(uint _id);
-    event rotationEnded(uint _id);
     event memberCreated(address indexed _member, uint256 indexed _id);
     event memberKicked(address indexed _memberAddress, uint256 indexed _groupId);
     event subscriptionExpired(address indexed _subscriber);
     event hasDonated(address indexed _participant, uint256 indexed _amount);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
-    event hasReceivedFunds(
-        address indexed _participant,
-        uint256 indexed _amount
-    );
-    event participantVerdict(bool _isBanned, address indexed _participant);
-    event hasSubscribed(
-        address indexed _address,
-        uint256 indexed _subscriptionAmount
-    );
+    event hasReceivedFunds(address indexed _participant, uint256 indexed _amount);
+    event hasSubscribed(address indexed _address, uint256 indexed _subscriptionAmount);
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
+    event collateralPayedOut(address indexed _from, address indexed _to, uint256 indexed _amount);
 
     constructor(uint256 _premiumFee) {
         premiumFee = _premiumFee;
@@ -133,7 +118,7 @@ contract Mchango {
     }
 
     modifier idCompliance(uint256 _id) {
-        require(_id <= counter && _id != 0, "identifier can not be blank");
+        require(_id <= counter && _id != 0, "invalid id");
         _;
     }
 
@@ -214,14 +199,22 @@ contract Mchango {
         return remainingAllowance;
     }
 
-    /***
-     * @notice This function has not been implemented
-     */
+
     function penalize(
         uint256 _id,
-        uint256 _contributionValue,
-        address _memberAddress
-    ) external {}
+        address _memberAddress,
+        address _tokenAddress,
+        address _receiverAddress
+    ) external idCompliance(_id) groupExists(_id) onlyAdmin(_id) memberCompliance(_memberAddress) {
+        require(isEligibleMember[_receiverAddress][_id], "collateral recipient is not an eligible group member");
+
+        IERC20 token = IERC20(_tokenAddress);
+        uint256 collateralValue = checkCollateral(_memberAddress, _tokenAddress);
+
+        isEligibleMember[_memberAddress][_id] = false;
+        token.transferFrom(_memberAddress, _receiverAddress, collateralValue);
+        emit collateralPayedOut(_memberAddress, _receiverAddress, collateralValue);
+    }
 
 
     function createMember(address _address) external {
