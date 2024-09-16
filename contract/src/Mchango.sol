@@ -1,6 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+
 contract Mchango {
     /**Errors */
     error Mchango__GroupAlreadyInContributionState();
@@ -58,7 +74,6 @@ contract Mchango {
     mapping(address => mapping(uint256 => bool)) public isGroupMember;
     mapping(address => mapping(uint256 => bool)) public isEligibleMember;
     mapping(address => mapping(uint256 => bool)) public isGroupAdmin;
-
 
     /**Events */
     event inContributionPhase(uint _id);
@@ -162,23 +177,23 @@ contract Mchango {
         uint256 _id,
         address _memberAddress
     ) public view returns (bool) {
-        return idToGroup[_id].isGroupMember[_memberAddress];
+        return isGroupMember[_memberAddress][_id];
     }
 
     function checkIsEligibleMember(
         uint256 _id,
         address _memberAddress
     ) public view returns (bool) {
-        return idToGroup[_id].isEligibleMember[_memberAddress];
+        return isEligibleMember[_memberAddress][_id];
     }
 
     function returnMemberDetails(
         address _address
     )
-        public
-        view
-        memberCompliance(_address)
-        returns (uint256, uint256, address)
+    public
+    view
+    memberCompliance(_address)
+    returns (uint256, uint256, address)
     {
         Member memory member = addressToMember[_address];
         return (member.id, member.reputation, member.memberAddress);
@@ -195,9 +210,8 @@ contract Mchango {
         return addressToMember[_address].reputation;
     }
 
-
     function makePayment(address recipient, uint256 _value) internal {
-        (bool success, ) = payable(recipient).call{value: _value}("");
+        (bool success,) = payable(recipient).call{value: _value}("");
         if (!success) {
             revert Mchango_TransactionFailed();
         }
@@ -261,6 +275,12 @@ contract Mchango {
         return member_id;
     }
 
+    function checkCollateral(address _owner, address _tokenAddress) internal view returns (uint256) {
+        IERC20 token = IERC20(_tokenAddress);
+        uint256 remainingAllowance = token.allowance(_owner, address(this));
+        return remainingAllowance;
+    }
+
     function createGroup(
         string memory _collateralValueInUsd
     ) external memberCompliance(msg.sender) {
@@ -286,11 +306,11 @@ contract Mchango {
     function getGroupDetails(
         uint256 _id
     )
-        external
-        view
-        idCompliance(_id)
-        groupExists(_id)
-        returns (uint256, uint256, uint256, uint256, address)
+    external
+    view
+    idCompliance(_id)
+    groupExists(_id)
+    returns (uint256, uint256, uint256, uint256, address)
     {
         Group storage group = idToGroup[_id];
 
@@ -313,11 +333,11 @@ contract Mchango {
         uint256 _groupCollateralValue,
         uint256 _reputationPoint
     )
-        external
-        payable
-        memberCompliance(_memberAddress)
-        idCompliance(_id)
-        groupExists(_id)
+    external
+    payable
+    memberCompliance(_memberAddress)
+    idCompliance(_id)
+    groupExists(_id)
     {
         if (_reputationPoint < 1) {
             revert Mchango_NotEnoughReputation();
