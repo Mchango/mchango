@@ -96,9 +96,6 @@ contract Mchango {
     );
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
 
-    /**
-     * @param _premiumFee this sets the fee for a premium subscription
-     */
     constructor(uint256 _premiumFee) {
         premiumFee = _premiumFee;
         Owner = msg.sender;
@@ -147,10 +144,9 @@ contract Mchango {
         _;
     }
 
-    /**
-     * @dev Function Refactored, Subscriber storage has been moved to database
-     */
+
     function subscribePremium() external payable subscriptionCompliance {
+        uint256 amount = msg.value;
         if (isMember[msg.sender] != true) {
             revert Mchango_NotAMember();
         }
@@ -159,11 +155,8 @@ contract Mchango {
             revert Mchango_AlreadyAPremiumSubscriber();
         }
 
-
-        uint256 amount = msg.value;
-        makePayment(address(this), premiumFee);
-
         isPremium[msg.sender] = true;
+        makePayment(address(this), premiumFee);
 
         emit hasSubscribed(msg.sender, amount);
     }
@@ -182,34 +175,20 @@ contract Mchango {
         return isPremium[_address];
     }
 
-    function checkIsGroupMember(
-        uint256 _id,
-        address _memberAddress
-    ) public view returns (bool) {
+    function checkIsGroupMember(uint256 _id, address _memberAddress) public view returns (bool) {
         return isGroupMember[_memberAddress][_id];
     }
 
-    function checkIsEligibleMember(
-        uint256 _id,
-        address _memberAddress
-    ) public view returns (bool) {
+    function checkIsEligibleMember(uint256 _id, address _memberAddress) public view returns (bool) {
         return isEligibleMember[_memberAddress][_id];
     }
 
-    function returnMemberDetails(
-        address _address
-    )
-    public
-    view
-    returns (uint256, address)
-    {
+    function returnMemberDetails(address _address) public view returns (uint256, address) {
         Member memory member = addressToMember[_address];
         return (member.id, member.memberAddress);
     }
 
-    function returnGroup(
-        uint256 _id
-    ) internal view groupExists(_id) returns (Group memory) {
+    function returnGroup(uint256 _id) internal view groupExists(_id) returns (Group memory) {
         return idToGroup[_id];
     }
 
@@ -220,9 +199,7 @@ contract Mchango {
         }
     }
 
-    function getMaxMembers(
-        address _memberAddress
-    ) internal view returns (uint256) {
+    function getMaxMembers(address _memberAddress) internal view returns (uint256) {
         uint freePlanMemberLimit;
         if (!isSubscriberPremium(_memberAddress)) {
             freePlanMemberLimit = FREE_PLAN_LIMIT;
@@ -362,7 +339,7 @@ contract Mchango {
 
         if (collateralValue < group.collateral) {
             isEligibleMember[member][_id] = false;
-            revert Mchango_NotEnoughCollateral();
+            require(collateralValue >= group.collateral, "insufficient collateral");
         }
 
         if (msg.value < _contributionValue) {
