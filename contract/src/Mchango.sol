@@ -238,7 +238,6 @@ contract Mchango {
     }
 
     /***
-     * @dev Refactored and made compatible with backend operations
      * @notice This function has not been implemented
      */
     function penalize(
@@ -379,42 +378,25 @@ contract Mchango {
         emit hasDonated(msg.sender, msg.value);
     }
 
-
-    /**
-     * @dev refactored and made compatible with backend operations
-     */
     function disburse(
         uint256 _id,
         uint256 _amount,
         address _memberAddress
     ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        Group storage group = idToGroup[_id];
-        State state = group.currentState;
-        uint256 amountToDisburse = _amount + 0 ether;
-        if (state != State.rotation) {
-            revert Mchango_GroupStateError(state);
-        }
+        Group memory group = idToGroup[_id];
 
-        if (_amount != group.balance) {
-            revert Mchango_NotAllFundsDisbursed();
-        }
 
-        if (!group.isEligibleMember[_memberAddress]) {
+        if (!isEligibleMember[_memberAddress][_id]) {
             revert Mchango_NotAnEligibleMember();
         }
-
-        //? 3% fee is subracted from the amount to disburse
-        uint256 fee = (amountToDisburse * 3) / 100;
-        uint256 balance = amountToDisburse - fee;
         group.balance = 0;
 
-        makePayment(_memberAddress, balance);
-        emit hasReceivedFunds(_memberAddress, balance);
+        makePayment(_memberAddress, _amount);
+        emit hasReceivedFunds(_memberAddress, _amount);
     }
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
         premiumFee = _fee;
-
         emit premiumFeeUpdated(msg.sender, _fee);
     }
 }
