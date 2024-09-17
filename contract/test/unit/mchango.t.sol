@@ -8,10 +8,12 @@ import {Mchango} from "../../src/Mchango.sol";
 contract MchangoTest is Script {
     /**Errors */
     error Mchango_InsufficientContributionAmount();
+    error Mchango_InsufficientAmountForPremiumService();
+    error Mchango_NotAMember();
     error Mchango_NotAGroupMember();
+    error Mchango_NotAnEligibleMember();
     error Mchango__GroupAlreadyInRotationState();
     error Mchango_NotAllFundsDisbursed();
-    error Mchango_NotAnEligibleMember();
     error Mchango_BlankCompliance();
 
     /**Events */
@@ -24,10 +26,7 @@ contract MchangoTest is Script {
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
     event hasDonated(address indexed _participant, uint256 indexed _amount);
-    event hasReceivedFunds(
-        address indexed _participant,
-        uint256 indexed _amount
-    );
+    event hasReceivedFunds(address indexed _participant, uint256 indexed _amount);
     event subscriptionExpired(address indexed _subscriber);
     event inRotationPhase(uint _id);
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
@@ -96,6 +95,23 @@ contract MchangoTest is Script {
 
         vm.startPrank(member1);
         mchango.createMember(member1);
+        vm.stopPrank();
+    }
+
+    function testSubscribePremiumRevertsWithWrongValue() external createMember(member1) {
+        vm.expectRevert(Mchango.Mchango_InsufficientAmountForPremiumService.selector);
+
+        vm.startPrank(member1);
+        mchango.subscribePremium{value: 1 ether}();
+        vm.stopPrank();
+
+    }
+
+    function testSubscribePremiumRevertsIfCallerIsNotAMember() external  {
+        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
+
+        vm.startPrank(member2);
+        mchango.subscribePremium{value: 2 ether}();
         vm.stopPrank();
     }
 
