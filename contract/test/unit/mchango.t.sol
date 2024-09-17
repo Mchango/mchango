@@ -12,6 +12,7 @@ contract MchangoTest is Script {
     error Mchango__GroupAlreadyInRotationState();
     error Mchango_NotAllFundsDisbursed();
     error Mchango_NotAnEligibleMember();
+    error Mchango_BlankCompliance();
 
     /**Events */
     event hasSubscribed(
@@ -55,6 +56,13 @@ contract MchangoTest is Script {
         vm.deal(member3, 100 ether);
     }
 
+    modifier createMember(address _address) {
+        vm.startPrank(_address);
+        mchango.createMember(_address);
+        vm.stopPrank();
+        _;
+    }
+
     function testConstructorValuesAreProperlyInitialized() external view  {
         uint256 _premiumFee = mchango.premiumFee();
         address _owner = mchango.Owner();
@@ -63,6 +71,24 @@ contract MchangoTest is Script {
 
         assert(_premiumFee == PREMIUM_FEE);
         assert(isOwnerPremium == true);
+    }
+
+    function testCreateMemberRevertsIfAddressIsBlank() external {
+        vm.expectRevert(Mchango.Mchango_BlankCompliance.selector);
+
+        vm.startPrank(member1);
+        mchango.createMember(address(0));
+    }
+
+    function testEnsureFieldsAreUpdatedAfterMemberCreation() external createMember(member1) {
+        uint256 _memberCounter = mchango.memberCounter();
+        bool isMember = mchango.isMember(member1);
+        (uint256 _memberId, address _memberAddress) = mchango.returnMemberDetails(member1);
+
+        assert(_memberCounter == _memberId);
+        assert(isMember == true);
+        assert(_memberAddress == member1);
+
     }
 
 }
