@@ -19,7 +19,7 @@ contract MchangoTest is Script {
         address indexed _address,
         uint256 indexed _subscriptionAmount
     );
-    event memberCreated(address indexed member);
+    event memberCreated(address indexed _member, uint256 indexed _id);
     event memberKicked(address indexed _memberAddress);
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
@@ -88,7 +88,15 @@ contract MchangoTest is Script {
         assert(_memberCounter == _memberId);
         assert(isMember == true);
         assert(_memberAddress == member1);
+    }
 
+    function testEventIsEmittedAfterSuccessfulMemberCreation() external  {
+        vm.expectEmit(true, true, false, false);
+        emit memberCreated(member1, 1);
+
+        vm.startPrank(member1);
+        mchango.createMember(member1);
+        vm.stopPrank();
     }
 
 }
