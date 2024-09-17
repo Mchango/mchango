@@ -193,13 +193,12 @@ contract Mchango {
         emit hasSubscribed(msg.sender, amount);
     }
 
-    function unSubscribePremiumMember(address _subscriberAddress) external {
+    function unSubscribePremiumMember(address _subscriberAddress) external memberCompliance(msg.sender) {
         if (!isPremium[_subscriberAddress]) {
             revert Mchango_NotAPremiumSubscriber();
         }
 
         isPremium[_subscriberAddress] = false;
-
         emit subscriptionExpired(_subscriberAddress);
     }
 
