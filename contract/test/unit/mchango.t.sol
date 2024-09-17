@@ -9,6 +9,7 @@ contract MchangoTest is Script {
     /**Errors */
     error Mchango_InsufficientContributionAmount();
     error Mchango_InsufficientAmountForPremiumService();
+    error Mchango_AlreadyAPremiumSubscriber();
     error Mchango_NotAMember();
     error Mchango_NotAGroupMember();
     error Mchango_NotAnEligibleMember();
@@ -62,6 +63,12 @@ contract MchangoTest is Script {
         _;
     }
 
+    function subscribePremium() internal createMember(member1) {
+        vm.startPrank(member1);
+        mchango.subscribePremium{value: 2 ether}();
+        vm.stopPrank();
+    }
+
     function testConstructorValuesAreProperlyInitialized() external view  {
         uint256 _premiumFee = mchango.premiumFee();
         address _owner = mchango.Owner();
@@ -111,6 +118,23 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
 
         vm.startPrank(member2);
+        mchango.subscribePremium{value: 2 ether}();
+        vm.stopPrank();
+    }
+
+    function testSubscribePremiumProperlyExecutes() external  {
+        subscribePremium();
+
+        bool _isPremiumSubscriber = mchango.isSubscriberPremium(member1);
+        assert(_isPremiumSubscriber == true);
+    }
+
+    function testSubscribePremiumRevertsIfAlreadySubscribed() external {
+        subscribePremium();
+
+        vm.expectRevert(Mchango.Mchango_AlreadyAPremiumSubscriber.selector);
+
+        vm.startPrank(member1);
         mchango.subscribePremium{value: 2 ether}();
         vm.stopPrank();
     }
