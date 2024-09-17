@@ -179,11 +179,8 @@ contract Mchango {
 
 
 
-    function subscribePremium() external payable subscriptionCompliance {
+    function subscribePremium() external payable subscriptionCompliance memberCompliance(msg.sender) {
         uint256 amount = msg.value;
-        if (isMember[msg.sender] != true) {
-            revert Mchango_NotAMember();
-        }
 
         if (isPremium[msg.sender] == true) {
             revert Mchango_AlreadyAPremiumSubscriber();
