@@ -189,6 +189,7 @@ contract Mchango {
         isPremium[msg.sender] = true;
         makePayment(address(this), premiumFee);
 
+
         emit hasSubscribed(msg.sender, amount);
     }
 
