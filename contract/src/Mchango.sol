@@ -76,7 +76,7 @@ contract Mchango {
     event hasDonated(address indexed _participant, uint256 indexed _amount, bool indexed _hasDonated);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
-    event hasReceivedFunds(address indexed _participant, uint256 indexed _amount);
+    event hasReceivedFunds(address indexed _participant, uint256 indexed _amount, bool indexed _hasReceivedFunds);
     event hasSubscribed(address indexed _address, uint256 indexed _subscriptionAmount);
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
     event collateralPayedOut(address indexed _from, address indexed _to, uint256 indexed _amount);
@@ -359,14 +359,14 @@ contract Mchango {
         uint256 _id,
         uint256 _amount,
         address _memberAddress
-    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
-        if (!isEligibleMember[_memberAddress][_id]) {
+    ) external memberCompliance(_memberAddress) idCompliance(_id) groupExists(_id) onlyAdmin(_id)  {
+        if (!checkIsEligibleMember(_id, _memberAddress)) {
             revert Mchango_NotAnEligibleMember();
         }
         idToGroup[_id].balance = 0;
 
         makePayment(_memberAddress, _amount);
-        emit hasReceivedFunds(_memberAddress, _amount);
+        emit hasReceivedFunds(_memberAddress, _amount, true);
     }
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
