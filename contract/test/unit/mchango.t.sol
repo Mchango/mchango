@@ -40,6 +40,7 @@ contract MchangoTest is Script {
     address public member2 = makeAddr("3illBaby2");
     address public member3 = makeAddr("3illBaby3");
     uint256 public constant PREMIUM_FEE = 2 ether;
+    uint256 public constant COLLATERAL_VALUE_IN_USD = 100;
 
     function setUp() public {
         vm.startBroadcast();
@@ -69,7 +70,7 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testConstructorValuesAreProperlyInitialized() external view  {
+    function testConstructorValuesAreProperlyInitialized() external view {
         uint256 _premiumFee = mchango.premiumFee();
         address _owner = mchango.Owner();
 
@@ -96,7 +97,7 @@ contract MchangoTest is Script {
         assert(_memberAddress == member1);
     }
 
-    function testEventIsEmittedAfterSuccessfulMemberCreation() external  {
+    function testEventIsEmittedAfterSuccessfulMemberCreation() external {
         vm.expectEmit(true, true, false, false);
         emit memberCreated(member1, 1);
 
@@ -114,7 +115,7 @@ contract MchangoTest is Script {
 
     }
 
-    function testSubscribePremiumRevertsIfCallerIsNotAMember() external  {
+    function testSubscribePremiumRevertsIfCallerIsNotAMember() external {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
 
         vm.startPrank(member2);
@@ -122,7 +123,7 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testSubscribePremiumProperlyExecutes() external  {
+    function testSubscribePremiumProperlyExecutes() external {
         subscribePremium();
 
         bool _isPremiumSubscriber = mchango.isSubscriberPremium(member1);
@@ -147,7 +148,7 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testUnsubscribePremiumRevertsIfAddressNotAPremiumMember() external createMember(member1)  {
+    function testUnsubscribePremiumRevertsIfAddressNotAPremiumMember() external createMember(member1) {
         vm.expectRevert(Mchango.Mchango_NotAPremiumSubscriber.selector);
 
         vm.startPrank(member1);
@@ -155,7 +156,7 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testUnsubscribePremiumSetsPremiumValueToFalse() external   {
+    function testUnsubscribePremiumSetsPremiumValueToFalse() external {
         subscribePremium();
 
         vm.startPrank(member1);
@@ -174,6 +175,53 @@ contract MchangoTest is Script {
 
         vm.startPrank(member1);
         mchango.unSubscribePremiumMember(member1);
+        vm.stopPrank();
+
+    }
+
+    function testCreateGroupRevertsIfNotAMember() external {
+        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
+
+        vm.startPrank(member1);
+        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
+        vm.stopPrank();
+    }
+
+    function createGroup() internal createMember(member1) {
+        vm.startPrank(member1);
+        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
+        vm.stopPrank();
+    }
+
+    function testCreateGroupSuccessfullySetsValues() external {
+        createGroup();
+
+        uint256 _groupCount = mchango.counter();
+        (address _admin, uint256 _collateral, uint256 _balance, uint256 _memberCounter) = mchango.getGroupDetails(1);
+        bool _isGroupMember = mchango.isGroupMember(member1, 1);
+        bool _isGroupAdmin = mchango.isGroupAdmin(member1, 1);
+
+        console.log('is group member', _isGroupMember);
+        console.log('collateral value', _collateral);
+        console.log('group balance', _balance);
+        console.log('member counter', _memberCounter);
+        console.log('admin address', _admin);
+
+        assert(_groupCount == 1);
+        assert(_admin == member1);
+        assert(_collateral == COLLATERAL_VALUE_IN_USD);
+        assert(_balance == 0);
+        assert(_memberCounter == 1);
+        assert(_isGroupMember == true);
+        assert(_isGroupAdmin == true);
+    }
+
+    function testCreateGroupEmitsAnEvent() external createMember(member1) {
+        vm.expectEmit(true, true, false, false);
+        emit hasCreatedGroup(member1, 1);
+
+        vm.startPrank(member1);
+        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
         vm.stopPrank();
 
     }
