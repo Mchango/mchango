@@ -16,6 +16,7 @@ contract MchangoTest is Script {
     error Mchango__GroupAlreadyInRotationState();
     error Mchango_NotAllFundsDisbursed();
     error Mchango_BlankCompliance();
+    error Mchango_NotEnoughReputation();
 
     /**Events */
     event hasSubscribed(
@@ -224,6 +225,49 @@ contract MchangoTest is Script {
         mchango.createGroup(COLLATERAL_VALUE_IN_USD);
         vm.stopPrank();
 
+    }
+
+    function testJoinGroupRevertsIfNotAMember() external {
+        createGroup();
+
+        address _tokenAddress = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        uint256 _id = 2;
+        uint256 _reputationPoint = 2;
+
+        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
+
+        vm.startPrank(member2);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint);
+        vm.stopPrank();
+    }
+
+    function testJoinGroupRevertsIfGroupIdIsWrong() external createMember(member2)  {
+        createGroup();
+
+        address _tokenAddress = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        uint256 _id = 5;
+        uint256 _reputationPoint = 3;
+
+        vm.expectRevert();
+
+        vm.startPrank(member2);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint);
+        vm.stopPrank();
+
+    }
+
+    function testJoinGroupRevertsIfReputationIsLessThan1() external createMember(member2) {
+        createGroup();
+
+        address _tokenAddress = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        uint256 _id = 1;
+        uint256 _reputationPoint = 0;
+
+        vm.expectRevert(Mchango.Mchango_NotEnoughReputation.selector);
+
+        vm.startPrank(member2);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint );
+        vm.stopPrank();
     }
 
 }
