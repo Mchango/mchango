@@ -310,7 +310,12 @@ contract Mchango {
     function kickGroupMember(
         address _groupMemberAddress,
         uint256 _id
-    ) external idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
+    ) external memberCompliance(_groupMemberAddress) idCompliance(_id) onlyAdmin(_id) groupExists(_id) {
+
+        if (!checkIsGroupMember(_id, _groupMemberAddress)) {
+            revert Mchango_NotAGroupMember();
+        }
+
         idToGroup[_id].memberCounter--;
         isGroupMember[_groupMemberAddress][_id] = false;
         isEligibleMember[_groupMemberAddress][_id] = false;
