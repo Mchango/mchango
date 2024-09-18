@@ -292,7 +292,7 @@ contract Mchango {
         }
 
         Group memory group = returnGroup(_id);
-        if (!isSubscriberPremium(_memberAddress) && group.memberCounter >= getMaxMembers(_memberAddress)) {
+        if (!isSubscriberPremium(group.admin) && group.memberCounter >= getMaxMembers(group.admin)) {
             revert Mchango_MaxMembersReached();
         }
 
