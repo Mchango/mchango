@@ -150,7 +150,6 @@ contract Mchango {
     }
 
 
-
     function returnGroup(uint256 _id) internal view groupExists(_id) returns (Group memory) {
         return idToGroup[_id];
     }
@@ -176,7 +175,6 @@ contract Mchango {
         uint256 remainingAllowance = token.allowance(_owner, address(this));
         return remainingAllowance;
     }
-
 
 
     function subscribePremium() external payable subscriptionCompliance memberCompliance(msg.sender) {
@@ -241,17 +239,20 @@ contract Mchango {
         uint256 _collateralValueInUsd
     ) external memberCompliance(msg.sender) {
         address _admin = msg.sender;
-
         counter++;
         uint256 id = counter;
-        isGroupAdmin[msg.sender][id] = true;
-        Group({
+
+        Group memory group = Group({
             id: id,
             memberCounter: 1,
             balance: 0,
             collateral: _collateralValueInUsd,
             admin: _admin
         });
+        isGroupAdmin[msg.sender][id] = true;
+        isGroupMember[msg.sender][id] = true;
+        idToGroup[id] = group;
+
 
         emit hasCreatedGroup(_admin, id);
     }
