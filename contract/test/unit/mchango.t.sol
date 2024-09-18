@@ -139,4 +139,43 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
+    function testUnsubscribePremiumRevertsIfAddressNotAMember() external {
+        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
+
+        vm.startPrank(member1);
+        mchango.unSubscribePremiumMember(member1);
+        vm.stopPrank();
+    }
+
+    function testUnsubscribePremiumRevertsIfAddressNotAPremiumMember() external createMember(member1)  {
+        vm.expectRevert(Mchango.Mchango_NotAPremiumSubscriber.selector);
+
+        vm.startPrank(member1);
+        mchango.unSubscribePremiumMember(member1);
+        vm.stopPrank();
+    }
+
+    function testUnsubscribePremiumSetsPremiumValueToFalse() external   {
+        subscribePremium();
+
+        vm.startPrank(member1);
+        mchango.unSubscribePremiumMember(member1);
+        vm.stopPrank();
+
+        bool _isPremiumSubscriber = mchango.isSubscriberPremium(member1);
+        assert(_isPremiumSubscriber == false);
+    }
+
+    function testUnsubscribePremiumEmitsEvent() external {
+        subscribePremium();
+
+        vm.expectEmit(true, false, false, false);
+        emit subscriptionExpired(member1);
+
+        vm.startPrank(member1);
+        mchango.unSubscribePremiumMember(member1);
+        vm.stopPrank();
+
+    }
+
 }
