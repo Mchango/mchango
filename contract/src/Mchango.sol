@@ -73,7 +73,7 @@ contract Mchango {
     event memberCreated(address indexed _member, uint256 indexed _id);
     event memberKicked(address indexed _memberAddress, uint256 indexed _groupId);
     event subscriptionExpired(address indexed _subscriber);
-    event hasDonated(address indexed _participant, uint256 indexed _amount);
+    event hasDonated(address indexed _participant, uint256 indexed _amount, bool indexed _hasDonated);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
     event hasReceivedFunds(address indexed _participant, uint256 indexed _amount);
@@ -328,12 +328,12 @@ contract Mchango {
         uint256 _id,
         uint256 _contributionValue,
         address _tokenAddress
-    ) external payable idCompliance(_id) groupExists(_id) memberCompliance(msg.sender) {
+    ) external payable memberCompliance(msg.sender) idCompliance(_id) groupExists(_id)  {
         Group memory group = returnGroup(_id);
         address member = msg.sender;
         uint256 collateralValue = checkCollateral(member, _tokenAddress);
 
-        if (!isGroupMember[member][_id]) {
+        if (!checkIsGroupMember(_id, member)) {
             revert Mchango_NotAGroupMember();
         }
 
@@ -347,12 +347,12 @@ contract Mchango {
         }
 
         idToGroup[_id].balance += msg.value;
-        if (!isEligibleMember[member][_id]) {
+        if (!checkIsEligibleMember(_id, member)) {
             isEligibleMember[member][_id] = true;
         }
 
         makePayment(address(this), msg.value);
-        emit hasDonated(msg.sender, msg.value);
+        emit hasDonated(msg.sender, msg.value, true);
     }
 
     function disburse(
