@@ -270,4 +270,24 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
+    function testKickGroupMemberRevertsIfAddressIsNotAMember() external {
+        createGroup();
+
+        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
+
+        vm.startPrank(member1);
+        mchango.kickGroupMember(member2, 1);
+        vm.stopPrank();
+    }
+
+    function testKickGroupMemberFailsIfCallerIsNotAdmin() external createMember(member2) {
+        createGroup();
+
+        vm.expectRevert();
+
+        vm.startPrank(member2);
+        mchango.kickGroupMember(member1, 1);
+        vm.stopPrank();
+    }
+
 }
