@@ -1,6 +1,6 @@
 # Mchango
 
-Welcome to mchango a rotating savings and contribution platform
+Welcome to mchango, a rotating savings and contribution platform
 
 ## Authors
 
