@@ -63,6 +63,7 @@ contract Mchango {
     uint256 public premiumFee;
     uint256 public exclusiveFee;
     uint256 private immutable FREE_PLAN_LIMIT = 5;
+    uint256 private immutable SERVICE_FEE = 1;
 
     address public immutable Owner;
     mapping(uint256 => Group) private idToGroup;
@@ -403,9 +404,11 @@ contract Mchango {
             revert Mchango_NotAnEligibleMember();
         }
         idToGroup[_id].balance = 0;
+        uint256 fee = (_amount * SERVICE_FEE) / 100;
+        uint256 amountAfterFee = _amount - fee;
 
-        makePayment(_memberAddress, _amount);
-        emit hasReceivedFunds(_memberAddress, _amount, true);
+        makePayment(_memberAddress, amountAfterFee);
+        emit hasReceivedFunds(_memberAddress, amountAfterFee, true);
     }
 
     function setPremiumFee(uint256 _fee) external onlyOwner {
