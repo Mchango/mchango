@@ -64,8 +64,10 @@ contract Mchango {
     uint256 public exclusiveFee;
     uint256 private immutable FREE_PLAN_LIMIT = 5;
     uint256 private immutable SERVICE_FEE = 1;
+    uint256 private immutable DRAIN_PERCENTAGE = 90;
 
     address public immutable Owner;
+    address private OffloadAddress;
     mapping(uint256 => Group) private idToGroup;
     mapping(address => Member) private addressToMember;
     mapping(address => bool) public isMember;
@@ -101,10 +103,13 @@ contract Mchango {
         address indexed _to,
         uint256 indexed _amount
     );
+    event contractOffloaded(uint256 indexed _amount, address indexed _address);
+    event offloadAddressChanged(address indexed _newAddress);
 
-    constructor(uint256 _premiumFee) {
+    constructor(uint256 _premiumFee, address _offloadAddress) {
         premiumFee = _premiumFee;
         Owner = msg.sender;
+        OffloadAddress = _offloadAddress;
     }
 
     receive() external payable {}
@@ -414,5 +419,19 @@ contract Mchango {
     function setPremiumFee(uint256 _fee) external onlyOwner {
         premiumFee = _fee;
         emit premiumFeeUpdated(msg.sender, _fee);
+    }
+
+    function offload() external onlyOwner {
+        uint256 offload_percentage = (address(this).balance *
+            DRAIN_PERCENTAGE) / 100;
+        uint256 offload_share = address(this).balance - offload_percentage;
+        makePayment(Owner, offload_share);
+
+        emit contractOffloaded(offload_share, msg.sender);
+    }
+
+    function setOffloadAddress(address _offloadAddress) external onlyOwner {
+        OffloadAddress = _offloadAddress;
+        emit offloadAddressChanged(_offloadAddress);
     }
 }
