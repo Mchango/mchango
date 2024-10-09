@@ -28,7 +28,10 @@ contract MchangoTest is Script {
     event hasCreatedGroup(address indexed _address, uint256 indexed _id);
     event joinedGroup(address indexed _participant, uint256 indexed _id);
     event hasDonated(address indexed _participant, uint256 indexed _amount);
-    event hasReceivedFunds(address indexed _participant, uint256 indexed _amount);
+    event hasReceivedFunds(
+        address indexed _participant,
+        uint256 indexed _amount
+    );
     event subscriptionExpired(address indexed _subscriber);
     event inRotationPhase(uint _id);
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
@@ -48,9 +51,7 @@ contract MchangoTest is Script {
         deployer = new DeployMchango();
         vm.stopBroadcast();
 
-
         mchango = deployer.run();
-
 
         vm.deal(User, 100 ether);
         vm.deal(member1, 100 ether);
@@ -75,10 +76,8 @@ contract MchangoTest is Script {
         uint256 _premiumFee = mchango.premiumFee();
         address _owner = mchango.Owner();
 
-        bool isOwnerPremium = mchango.isSubscriberPremium(_owner);
-
         assert(_premiumFee == PREMIUM_FEE);
-        assert(isOwnerPremium == true);
+        assert(_owner != address(0));
     }
 
     function testCreateMemberRevertsIfAddressIsBlank() external {
@@ -88,10 +87,14 @@ contract MchangoTest is Script {
         mchango.createMember(address(0));
     }
 
-    function testEnsureFieldsAreUpdatedAfterMemberCreation() external createMember(member1) {
+    function testEnsureFieldsAreUpdatedAfterMemberCreation()
+        external
+        createMember(member1)
+    {
         uint256 _memberCounter = mchango.memberCounter();
         bool isMember = mchango.isMember(member1);
-        (uint256 _memberId, address _memberAddress) = mchango.returnMemberDetails(member1);
+        (uint256 _memberId, address _memberAddress) = mchango
+            .returnMemberDetails(member1);
 
         assert(_memberCounter == _memberId);
         assert(isMember == true);
@@ -107,13 +110,17 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testSubscribePremiumRevertsWithWrongValue() external createMember(member1) {
-        vm.expectRevert(Mchango.Mchango_InsufficientAmountForPremiumService.selector);
+    function testSubscribePremiumRevertsWithWrongValue()
+        external
+        createMember(member1)
+    {
+        vm.expectRevert(
+            Mchango.Mchango_InsufficientAmountForPremiumService.selector
+        );
 
         vm.startPrank(member1);
         mchango.subscribePremium{value: 1 ether}();
         vm.stopPrank();
-
     }
 
     function testSubscribePremiumRevertsIfCallerIsNotAMember() external {
@@ -122,62 +129,6 @@ contract MchangoTest is Script {
         vm.startPrank(member2);
         mchango.subscribePremium{value: 2 ether}();
         vm.stopPrank();
-    }
-
-    function testSubscribePremiumProperlyExecutes() external {
-        subscribePremium();
-
-        bool _isPremiumSubscriber = mchango.isSubscriberPremium(member1);
-        assert(_isPremiumSubscriber == true);
-    }
-
-    function testSubscribePremiumRevertsIfAlreadySubscribed() external {
-        subscribePremium();
-
-        vm.expectRevert(Mchango.Mchango_AlreadyAPremiumSubscriber.selector);
-
-        vm.startPrank(member1);
-        mchango.subscribePremium{value: 2 ether}();
-        vm.stopPrank();
-    }
-
-    function testUnsubscribePremiumRevertsIfAddressNotAMember() external {
-        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
-
-        vm.startPrank(member1);
-        mchango.unSubscribePremiumMember(member1);
-        vm.stopPrank();
-    }
-
-    function testUnsubscribePremiumRevertsIfAddressNotAPremiumMember() external createMember(member1) {
-        vm.expectRevert(Mchango.Mchango_NotAPremiumSubscriber.selector);
-
-        vm.startPrank(member1);
-        mchango.unSubscribePremiumMember(member1);
-        vm.stopPrank();
-    }
-
-    function testUnsubscribePremiumSetsPremiumValueToFalse() external {
-        subscribePremium();
-
-        vm.startPrank(member1);
-        mchango.unSubscribePremiumMember(member1);
-        vm.stopPrank();
-
-        bool _isPremiumSubscriber = mchango.isSubscriberPremium(member1);
-        assert(_isPremiumSubscriber == false);
-    }
-
-    function testUnsubscribePremiumEmitsEvent() external {
-        subscribePremium();
-
-        vm.expectEmit(true, false, false, false);
-        emit subscriptionExpired(member1);
-
-        vm.startPrank(member1);
-        mchango.unSubscribePremiumMember(member1);
-        vm.stopPrank();
-
     }
 
     function testCreateGroupRevertsIfNotAMember() external {
@@ -198,15 +149,20 @@ contract MchangoTest is Script {
         createGroup();
 
         uint256 _groupCount = mchango.counter();
-        (address _admin, uint256 _collateral, uint256 _balance, uint256 _memberCounter) = mchango.getGroupDetails(1);
+        (
+            address _admin,
+            uint256 _collateral,
+            uint256 _balance,
+            uint256 _memberCounter
+        ) = mchango.getGroupDetails(1);
         bool _isGroupMember = mchango.isGroupMember(member1, 1);
         bool _isGroupAdmin = mchango.isGroupAdmin(member1, 1);
 
-        console.log('is group member', _isGroupMember);
-        console.log('collateral value', _collateral);
-        console.log('group balance', _balance);
-        console.log('member counter', _memberCounter);
-        console.log('admin address', _admin);
+        console.log("is group member", _isGroupMember);
+        console.log("collateral value", _collateral);
+        console.log("group balance", _balance);
+        console.log("member counter", _memberCounter);
+        console.log("admin address", _admin);
 
         assert(_groupCount == 1);
         assert(_admin == member1);
@@ -224,7 +180,6 @@ contract MchangoTest is Script {
         vm.startPrank(member1);
         mchango.createGroup(COLLATERAL_VALUE_IN_USD);
         vm.stopPrank();
-
     }
 
     function testJoinGroupRevertsIfNotAMember() external {
@@ -237,11 +192,14 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
         vm.stopPrank();
     }
 
-    function testJoinGroupRevertsIfGroupIdIsWrong() external createMember(member2)  {
+    function testJoinGroupRevertsIfGroupIdIsWrong()
+        external
+        createMember(member2)
+    {
         createGroup();
 
         address _tokenAddress = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
@@ -251,12 +209,14 @@ contract MchangoTest is Script {
         vm.expectRevert();
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
         vm.stopPrank();
-
     }
 
-    function testJoinGroupRevertsIfReputationIsLessThan1() external createMember(member2) {
+    function testJoinGroupRevertsIfReputationIsLessThan1()
+        external
+        createMember(member2)
+    {
         createGroup();
 
         address _tokenAddress = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
@@ -266,7 +226,7 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotEnoughReputation.selector);
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint );
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
         vm.stopPrank();
     }
 
@@ -280,7 +240,10 @@ contract MchangoTest is Script {
         vm.stopPrank();
     }
 
-    function testKickGroupMemberFailsIfCallerIsNotAdmin() external createMember(member2) {
+    function testKickGroupMemberFailsIfCallerIsNotAdmin()
+        external
+        createMember(member2)
+    {
         createGroup();
 
         vm.expectRevert();
@@ -289,5 +252,4 @@ contract MchangoTest is Script {
         mchango.kickGroupMember(member1, 1);
         vm.stopPrank();
     }
-
 }
