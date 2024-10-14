@@ -200,6 +200,7 @@ const joinCreatedGroup = async ({
   }
 };
 
+//subscribe to premium
 const subscribePremiumUser = async (): Promise<[string, number]> => {
   try {
     const result = valueFormatter("0.002");
