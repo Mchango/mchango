@@ -1,6 +1,6 @@
 # Mchango
 
-Welcome to mchango a rotating savings and contribution platform
+Welcome to mchango, a rotating savings and contribution platform
 
 ## Authors
 
@@ -8,8 +8,7 @@ Welcome to mchango a rotating savings and contribution platform
 - [@YourFriendInProduct](https://www.github.com/YourFriendInProduct)
 - [@nvsblmike](https://www.github.com/nvsblmike)
 - [@EniUXplorer](https://github.com/EniUXplorer)
-- [@chayilDeborah](https://github.com/chayil_Deborah)
-
+  
 ## Tech Stack
 
 **Client:** React, TailwindCSS, Next.JS, Javascript
