@@ -1,12 +1,12 @@
-import React from 'react';
-import SideNav from '../components/SideNav';
-import loader from '../assets/loader.svg';
-import loadplay from '../assets/loadplay.svg';
-import Image from 'next/image';
-import tokensData from '../data.json';
-import GroupEvents from '../components/GroupEvents';
-import GroupNav from '../components/GroupNav';
-import GroupLists from '../components/GroupLists';
+import React from "react";
+import SideNav from "../components/SideNav";
+import loader from "../assets/loader.svg";
+import loadplay from "../assets/loadplay.svg";
+import Image from "next/image";
+import tokensData from "../data.json";
+import GroupEvents from "../components/GroupEvents";
+import GroupNav from "../components/GroupNav";
+import GroupLists from "../components/GroupLists";
 
 interface Token {
   balance: string;
@@ -22,6 +22,7 @@ interface Token {
 }
 
 const Groups = () => {
+  //mock data
   const tokens: Token[] = tokensData;
   return (
     <>
@@ -40,7 +41,7 @@ const Groups = () => {
                       <div className="flex my-auto ">
                         <Image src={loader} alt="icon" className="mr-[10px]" />
                         <div className="text-[15px] font-medium text-[#A5AAB5] leading-[12px] tracking-[0.3px]  ">
-                          Total No Of Groups:{' '}
+                          Total No Of Groups:{" "}
                           <p className="text-[#FFFFFF] font-semibold mt-[9px] ">
                             {token.totalGroups}
                           </p>
@@ -54,7 +55,7 @@ const Groups = () => {
                             className="mr-[10px]"
                           />
                           <div className="text-[15px] font-medium text-[#A5AAB5] leading-[12px] tracking-[0.3px]  ">
-                            Groups In Rotation{' '}
+                            Groups In Rotation{" "}
                             <p className="text-[#FFFFFF] font-semibold mt-[9px] ">
                               {token.grpsInRotation}
                             </p>
@@ -67,7 +68,7 @@ const Groups = () => {
                             className="mr-[10px]"
                           />
                           <div className="text-[15px] font-medium text-[#A5AAB5] leading-[12px] tracking-[0.3px]  ">
-                            Groups Yet To Be In Rotation{' '}
+                            Groups Yet To Be In Rotation{" "}
                             <p className="text-[#FFFFFF] font-semibold mt-[9px] ">
                               {token.grpsYetinRotation}
                             </p>
