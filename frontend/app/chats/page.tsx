@@ -3,7 +3,6 @@ import SideNav from "../components/SideNav";
 import ChatComponent from "../components/ChatComponent";
 
 const Chats = () => {
-  //chats component
   return (
     <>
       <div className="bg-[#021D1D] flex justify-center ">
