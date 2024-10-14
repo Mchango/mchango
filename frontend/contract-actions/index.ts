@@ -175,6 +175,7 @@ const createNewGroup = async (
   }
 };
 
+//join created group
 const joinCreatedGroup = async ({
   id,
   amount,
