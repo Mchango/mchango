@@ -47,7 +47,6 @@ contract Mchango {
     struct Group {
         uint256 id;
         uint256 memberCounter;
-        uint256 collateral;
         address admin;
         uint256 balance;
     }
@@ -105,6 +104,7 @@ contract Mchango {
     );
     event contractOffloaded(uint256 indexed _amount, address indexed _address);
     event offloadAddressChanged(address indexed _newAddress);
+    event isEligible(address indexed _member);
 
     constructor(uint256 _premiumFee, address _offloadAddress) {
         premiumFee = _premiumFee;
@@ -182,7 +182,7 @@ contract Mchango {
     }
 
     function makePayment(address recipient, uint256 _value) internal {
-        (bool success, ) = payable(recipient).call{value: _value}("");
+        (bool success,) = payable(recipient).call{value: _value}("");
         if (!success) {
             revert Mchango_TransactionFailed("Payment Failed");
         }
@@ -198,10 +198,10 @@ contract Mchango {
     }
 
     function subscribePremium()
-        external
-        payable
-        subscriptionCompliance
-        memberCompliance(msg.sender)
+    external
+    payable
+    subscriptionCompliance
+    memberCompliance(msg.sender)
     {
         uint256 amount = msg.value;
         makePayment(address(this), premiumFee);
@@ -215,11 +215,11 @@ contract Mchango {
         address _tokenAddress,
         address _receiverAddress
     )
-        external
-        idCompliance(_id)
-        groupExists(_id)
-        onlyAdmin(_id)
-        memberCompliance(_memberAddress)
+    external
+    idCompliance(_id)
+    groupExists(_id)
+    onlyAdmin(_id)
+    memberCompliance(_memberAddress)
     {
         require(
             isEligibleMember[_receiverAddress][_id],
@@ -283,16 +283,15 @@ contract Mchango {
     function getGroupDetails(
         uint256 _id
     )
-        external
-        view
-        idCompliance(_id)
-        groupExists(_id)
-        returns (address, uint256, uint256, uint256)
+    external
+    view
+    idCompliance(_id)
+    groupExists(_id)
+    returns (address, uint256, uint256)
     {
         Group memory group = idToGroup[_id];
         return (
             group.admin,
-            group.collateral,
             group.balance,
             group.memberCounter
         );
@@ -303,12 +302,13 @@ contract Mchango {
         address _tokenAddress,
         uint256 _id,
         uint256 _reputationPoint,
+        uint256 _collateral,
         bool isGroupAdminPremium
     )
-        external
-        memberCompliance(_memberAddress)
-        idCompliance(_id)
-        groupExists(_id)
+    external
+    memberCompliance(_memberAddress)
+    idCompliance(_id)
+    groupExists(_id)
     {
         if (isGroupMember[_memberAddress][_id]) {
             revert Mchango_AlreadyAMember();
@@ -323,7 +323,7 @@ contract Mchango {
         }
 
         uint256 allowance = checkCollateral(_memberAddress, _tokenAddress);
-        if (allowance < group.collateral) {
+        if (allowance < _collateral) {
             revert Mchango_NotEnoughCollateral();
         }
 
@@ -337,11 +337,11 @@ contract Mchango {
         address _groupMemberAddress,
         uint256 _id
     )
-        external
-        memberCompliance(_groupMemberAddress)
-        idCompliance(_id)
-        onlyAdmin(_id)
-        groupExists(_id)
+    external
+    memberCompliance(_groupMemberAddress)
+    idCompliance(_id)
+    onlyAdmin(_id)
+    groupExists(_id)
     {
         if (!checkIsGroupMember(_id, _groupMemberAddress)) {
             revert Mchango_NotAGroupMember();
@@ -357,13 +357,14 @@ contract Mchango {
     function contribute(
         uint256 _id,
         uint256 _contributionValue,
+        uint256 _collateral,
         address _tokenAddress
     )
-        external
-        payable
-        memberCompliance(msg.sender)
-        idCompliance(_id)
-        groupExists(_id)
+    external
+    payable
+    memberCompliance(msg.sender)
+    idCompliance(_id)
+    groupExists(_id)
     {
         Group memory group = returnGroup(_id);
         address member = msg.sender;
@@ -373,10 +374,10 @@ contract Mchango {
             revert Mchango_NotAGroupMember();
         }
 
-        if (collateralValue < group.collateral) {
+        if (collateralValue < _collateral) {
             isEligibleMember[member][_id] = false;
             require(
-                collateralValue >= group.collateral,
+                collateralValue >= _collateral,
                 "insufficient collateral"
             );
         }
@@ -399,11 +400,11 @@ contract Mchango {
         uint256 _amount,
         address _memberAddress
     )
-        external
-        memberCompliance(_memberAddress)
-        idCompliance(_id)
-        groupExists(_id)
-        onlyAdmin(_id)
+    external
+    memberCompliance(_memberAddress)
+    idCompliance(_id)
+    groupExists(_id)
+    onlyAdmin(_id)
     {
         if (!checkIsEligibleMember(_id, _memberAddress)) {
             revert Mchango_NotAnEligibleMember();
@@ -434,4 +435,19 @@ contract Mchango {
         OffloadAddress = _offloadAddress;
         emit offloadAddressChanged(_offloadAddress);
     }
+
+
+    function toggleMemberEligibility(uint256 _groupId, uint256 _collateral, address _tokenAddress) external groupExists(_groupId) {
+        address _member = msg.sender;
+        bool compliant = isGroupMember[_member][_groupId];
+        require(compliant == true, 'not a group member');
+
+        uint256 allowance = checkCollateral(_member, _tokenAddress);
+        require(allowance >= _collateral, 'not collateral compliant');
+
+        isEligibleMember[_member][_groupId] = true;
+        emit isEligible(_member);
+    }
+
+    function resetMemberEligibility() external {}
 }
