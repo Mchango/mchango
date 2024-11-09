@@ -1,6 +1,6 @@
-import React from 'react';
-import SideNav from '../components/SideNav';
-import ChatComponent from '../components/ChatComponent';
+import React from "react";
+import SideNav from "../components/SideNav";
+import ChatComponent from "../components/ChatComponent";
 
 const Chats = () => {
   return (
