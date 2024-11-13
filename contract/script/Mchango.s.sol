@@ -10,7 +10,7 @@ contract DeployMchango is Script {
         Mchango mchango;
 
         vm.startBroadcast();
-        mchango = new Mchango(premiumFee);
+        mchango = new Mchango(premiumFee, address(1));
         vm.stopBroadcast();
 
         return mchango;
