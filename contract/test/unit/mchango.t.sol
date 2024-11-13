@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {Script, console} from "forge-std/Script.sol";
+import {CommonBase} from "../../lib/forge-std/src/Base.sol";
+import {Script} from "../../lib/forge-std/src/Script.sol";
+import {StdChains} from "../../lib/forge-std/src/StdChains.sol";
+import {StdCheatsSafe} from "../../lib/forge-std/src/StdCheats.sol";
+import {StdUtils} from "../../lib/forge-std/src/StdUtils.sol";
+import {console} from "../../lib/forge-std/src/console.sol";
 import {DeployMchango} from "../../script/Mchango.s.sol";
 import {Mchango} from "../../src/Mchango.sol";
 
@@ -88,8 +93,8 @@ contract MchangoTest is Script {
     }
 
     function testEnsureFieldsAreUpdatedAfterMemberCreation()
-        external
-        createMember(member1)
+    external
+    createMember(member1)
     {
         uint256 _memberCounter = mchango.memberCounter();
         bool isMember = mchango.isMember(member1);
@@ -111,8 +116,8 @@ contract MchangoTest is Script {
     }
 
     function testSubscribePremiumRevertsWithWrongValue()
-        external
-        createMember(member1)
+    external
+    createMember(member1)
     {
         vm.expectRevert(
             Mchango.Mchango_InsufficientAmountForPremiumService.selector
@@ -135,13 +140,13 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
 
         vm.startPrank(member1);
-        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
+        mchango.createGroup();
         vm.stopPrank();
     }
 
     function createGroup() internal createMember(member1) {
         vm.startPrank(member1);
-        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
+        mchango.createGroup();
         vm.stopPrank();
     }
 
@@ -151,7 +156,6 @@ contract MchangoTest is Script {
         uint256 _groupCount = mchango.counter();
         (
             address _admin,
-            uint256 _collateral,
             uint256 _balance,
             uint256 _memberCounter
         ) = mchango.getGroupDetails(1);
@@ -159,14 +163,12 @@ contract MchangoTest is Script {
         bool _isGroupAdmin = mchango.isGroupAdmin(member1, 1);
 
         console.log("is group member", _isGroupMember);
-        console.log("collateral value", _collateral);
         console.log("group balance", _balance);
         console.log("member counter", _memberCounter);
         console.log("admin address", _admin);
 
         assert(_groupCount == 1);
         assert(_admin == member1);
-        assert(_collateral == COLLATERAL_VALUE_IN_USD);
         assert(_balance == 0);
         assert(_memberCounter == 1);
         assert(_isGroupMember == true);
@@ -178,7 +180,7 @@ contract MchangoTest is Script {
         emit hasCreatedGroup(member1, 1);
 
         vm.startPrank(member1);
-        mchango.createGroup(COLLATERAL_VALUE_IN_USD);
+        mchango.createGroup();
         vm.stopPrank();
     }
 
@@ -192,13 +194,13 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotAMember.selector);
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, COLLATERAL_VALUE_IN_USD, false);
         vm.stopPrank();
     }
 
     function testJoinGroupRevertsIfGroupIdIsWrong()
-        external
-        createMember(member2)
+    external
+    createMember(member2)
     {
         createGroup();
 
@@ -209,13 +211,13 @@ contract MchangoTest is Script {
         vm.expectRevert();
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, COLLATERAL_VALUE_IN_USD, false);
         vm.stopPrank();
     }
 
     function testJoinGroupRevertsIfReputationIsLessThan1()
-        external
-        createMember(member2)
+    external
+    createMember(member2)
     {
         createGroup();
 
@@ -226,30 +228,8 @@ contract MchangoTest is Script {
         vm.expectRevert(Mchango.Mchango_NotEnoughReputation.selector);
 
         vm.startPrank(member2);
-        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, false);
+        mchango.joinGroup(member2, _tokenAddress, _id, _reputationPoint, COLLATERAL_VALUE_IN_USD, false);
         vm.stopPrank();
     }
 
-    function testKickGroupMemberRevertsIfAddressIsNotAMember() external {
-        createGroup();
-
-        vm.expectRevert(Mchango.Mchango_NotAMember.selector);
-
-        vm.startPrank(member1);
-        mchango.kickGroupMember(member2, 1);
-        vm.stopPrank();
-    }
-
-    function testKickGroupMemberFailsIfCallerIsNotAdmin()
-        external
-        createMember(member2)
-    {
-        createGroup();
-
-        vm.expectRevert();
-
-        vm.startPrank(member2);
-        mchango.kickGroupMember(member1, 1);
-        vm.stopPrank();
-    }
 }
