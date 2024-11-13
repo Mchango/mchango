@@ -43,6 +43,7 @@ contract Mchango {
     error Mchango_NotAPremiumSubscriber();
     error Mchango_NotAllFundsDisbursed();
     error Mchango_GroupDoesntExist();
+    error Mchango_InvalidPenaltyLevel();
 
     struct Group {
         uint256 id;
@@ -61,12 +62,18 @@ contract Mchango {
     uint256 public memberCounter;
     uint256 public premiumFee;
     uint256 public exclusiveFee;
+    address public immutable Owner;
+
+
     uint256 private immutable FREE_PLAN_LIMIT = 5;
     uint256 private immutable SERVICE_FEE = 1;
     uint256 private immutable DRAIN_PERCENTAGE = 90;
-
-    address public immutable Owner;
+    uint256 private immutable PENALTY_MIN = 1;
+    uint256 private immutable PENALTY_MAX = 2;
     address private OffloadAddress;
+    address private escrowAddress;
+
+
     mapping(uint256 => Group) private idToGroup;
     mapping(address => Member) private addressToMember;
     mapping(address => bool) public isMember;
@@ -97,7 +104,7 @@ contract Mchango {
         uint256 indexed _subscriptionAmount
     );
     event premiumFeeUpdated(address indexed _address, uint256 indexed _fee);
-    event collateralPayedOut(
+    event collateralEscrowed(
         address indexed _from,
         address indexed _to,
         uint256 indexed _amount
@@ -105,11 +112,13 @@ contract Mchango {
     event contractOffloaded(uint256 indexed _amount, address indexed _address);
     event offloadAddressChanged(address indexed _newAddress);
     event isEligible(address indexed _member);
+    event escrowAddressUpdated(address indexed _newEscrowAddress);
 
-    constructor(uint256 _premiumFee, address _offloadAddress) {
+    constructor(uint256 _premiumFee, address _offloadAddress, address _escrowAddress) {
         premiumFee = _premiumFee;
         Owner = msg.sender;
         OffloadAddress = _offloadAddress;
+        escrowAddress = _escrowAddress;
     }
 
     receive() external payable {}
@@ -197,6 +206,35 @@ contract Mchango {
         return remainingAllowance;
     }
 
+    function resetMemberEligibility(uint256 _groupId, address _memberAddress) internal groupExists(_groupId) {
+        address _member = _memberAddress;
+        bool compliant = isGroupMember[_member][_groupId];
+        require(compliant == true, 'not a group member');
+        isEligibleMember[_member][_groupId] = false;
+    }
+
+    function kickGroupMember(
+        address _groupMemberAddress,
+        uint256 _id
+    )
+    internal
+    memberCompliance(_groupMemberAddress)
+    idCompliance(_id)
+    onlyOwner
+    groupExists(_id)
+    {
+        if (!checkIsGroupMember(_id, _groupMemberAddress)) {
+            revert Mchango_NotAGroupMember();
+        }
+
+        idToGroup[_id].memberCounter--;
+        isGroupMember[_groupMemberAddress][_id] = false;
+        isEligibleMember[_groupMemberAddress][_id] = false;
+
+        emit memberKicked(_groupMemberAddress, _id);
+    }
+
+
     function subscribePremium()
     external
     payable
@@ -212,33 +250,27 @@ contract Mchango {
     function penalize(
         uint256 _id,
         address _memberAddress,
-        address _tokenAddress,
-        address _receiverAddress
+        uint256 _penaltyLevel
     )
     external
     idCompliance(_id)
     groupExists(_id)
-    onlyAdmin(_id)
+    onlyOwner
     memberCompliance(_memberAddress)
     {
         require(
-            isEligibleMember[_receiverAddress][_id],
-            "collateral recipient is not an eligible group member"
+            isGroupMember[_memberAddress][_id],
+            "does not belong to group"
         );
 
-        IERC20 token = IERC20(_tokenAddress);
-        uint256 collateralValue = checkCollateral(
-            _memberAddress,
-            _tokenAddress
-        );
 
-        isEligibleMember[_memberAddress][_id] = false;
-        token.transferFrom(_memberAddress, _receiverAddress, collateralValue);
-        emit collateralPayedOut(
-            _memberAddress,
-            _receiverAddress,
-            collateralValue
-        );
+        if (_penaltyLevel == PENALTY_MIN) {
+            resetMemberEligibility(_id, _memberAddress);
+        } else if (_penaltyLevel == PENALTY_MAX) {
+            kickGroupMember(_memberAddress, _id);
+        } else {
+            revert Mchango_InvalidPenaltyLevel();
+        }
     }
 
     function createMember(address _address) external {
@@ -260,7 +292,7 @@ contract Mchango {
     }
 
     function createGroup(
-        uint256 _collateralValueInUsd
+
     ) external memberCompliance(msg.sender) {
         address _admin = msg.sender;
         counter++;
@@ -270,7 +302,6 @@ contract Mchango {
             id: id,
             memberCounter: 1,
             balance: 0,
-            collateral: _collateralValueInUsd,
             admin: _admin
         });
         isGroupAdmin[msg.sender][id] = true;
@@ -333,32 +364,10 @@ contract Mchango {
         emit joinedGroup(_memberAddress, _id);
     }
 
-    function kickGroupMember(
-        address _groupMemberAddress,
-        uint256 _id
-    )
-    external
-    memberCompliance(_groupMemberAddress)
-    idCompliance(_id)
-    onlyAdmin(_id)
-    groupExists(_id)
-    {
-        if (!checkIsGroupMember(_id, _groupMemberAddress)) {
-            revert Mchango_NotAGroupMember();
-        }
-
-        idToGroup[_id].memberCounter--;
-        isGroupMember[_groupMemberAddress][_id] = false;
-        isEligibleMember[_groupMemberAddress][_id] = false;
-
-        emit memberKicked(_groupMemberAddress, _id);
-    }
 
     function contribute(
         uint256 _id,
-        uint256 _contributionValue,
-        uint256 _collateral,
-        address _tokenAddress
+        uint256 _contributionValue
     )
     external
     payable
@@ -366,30 +375,16 @@ contract Mchango {
     idCompliance(_id)
     groupExists(_id)
     {
-        Group memory group = returnGroup(_id);
         address member = msg.sender;
-        uint256 collateralValue = checkCollateral(member, _tokenAddress);
-
         if (!checkIsGroupMember(_id, member)) {
             revert Mchango_NotAGroupMember();
         }
-
-        if (collateralValue < _collateral) {
-            isEligibleMember[member][_id] = false;
-            require(
-                collateralValue >= _collateral,
-                "insufficient collateral"
-            );
-        }
+        require(isEligibleMember[member][_id], 'not a participant');
 
         if (msg.value < _contributionValue) {
             revert Mchango_InsufficientContributionAmount();
         }
-
         idToGroup[_id].balance += msg.value;
-        if (!checkIsEligibleMember(_id, member)) {
-            isEligibleMember[member][_id] = true;
-        }
 
         makePayment(address(this), msg.value);
         emit hasDonated(msg.sender, msg.value, true);
@@ -437,8 +432,8 @@ contract Mchango {
     }
 
 
-    function toggleMemberEligibility(uint256 _groupId, uint256 _collateral, address _tokenAddress) external groupExists(_groupId) {
-        address _member = msg.sender;
+    function participateInRotation(uint256 _groupId, address _memberAddress, uint256 _collateral, address _tokenAddress) external groupExists(_groupId) onlyOwner {
+        address _member = _memberAddress;
         bool compliant = isGroupMember[_member][_groupId];
         require(compliant == true, 'not a group member');
 
@@ -449,5 +444,16 @@ contract Mchango {
         emit isEligible(_member);
     }
 
-    function resetMemberEligibility() external {}
+
+    function escrowCollateral(address _spender, address _tokenAddress, uint256 _amount) external onlyOwner {
+        IERC20 token = IERC20(_tokenAddress);
+        token.transferFrom(_spender, escrowAddress, _amount);
+
+        emit collateralEscrowed(_spender, escrowAddress, _amount);
+    }
+
+    function updateEscrowAddress(address _escrowAddress) external onlyOwner {
+        escrowAddress = _escrowAddress;
+        emit escrowAddressUpdated(_escrowAddress);
+    }
 }
