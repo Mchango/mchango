@@ -23,7 +23,7 @@ interface IERC20 {
     );
 }
 
-contract Mchango {
+contract Mchango  {
     /**Errors */
     error Mchango__GroupAlreadyInContributionState();
     error Mchango__GroupAlreadyInRotationState();
@@ -432,7 +432,7 @@ contract Mchango {
     }
 
 
-    function participateInRotation(uint256 _groupId, address _memberAddress, uint256 _collateral, address _tokenAddress) external groupExists(_groupId) onlyOwner {
+    function  participateInRotation(uint256 _groupId, address _memberAddress, uint256 _collateral, address _tokenAddress) external groupExists(_groupId) onlyOwner {
         address _member = _memberAddress;
         bool compliant = isGroupMember[_member][_groupId];
         require(compliant == true, 'not a group member');
