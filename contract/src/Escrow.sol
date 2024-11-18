@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 interface IERC20 {
@@ -29,8 +30,8 @@ contract Escrow {
     event AddressChanged(address indexed _newAddress, address indexed _caller);
     event CollateralReleased(address indexed _to, uint256 indexed _amount);
 
-    constructor(address _owner) {
-        owner = _owner;
+    constructor() {
+        owner = msg.sender;
     }
 
     modifier onlyOwner {
@@ -44,13 +45,17 @@ contract Escrow {
     }
 
     function releaseCollateral(address _to, uint256 _amount, address _tokenAddress) external onlyOwner {
-        require(_amount < address(this).balance, 'invalid amount');
         IERC20 token = IERC20(_tokenAddress);
+        uint256 escrowBalance = token.balanceOf(address(this));
+
+        require(_amount <= escrowBalance, 'invalid amount');
         uint256 tax = (_amount * DRAIN_PERCENTAGE) / 100;
 
+        require(_amount >= tax, "Amount too small after tax deduction");
         uint256 amountAfterTax = _amount - tax;
+        require(token.transfer(_to, amountAfterTax), "Transfer failed");
 
-        token.transfer(_to, amountAfterTax);
         emit CollateralReleased(_to, amountAfterTax);
     }
+
 }
