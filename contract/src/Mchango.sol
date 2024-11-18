@@ -420,7 +420,10 @@ contract Mchango  {
     function offload() external onlyOwner {
         uint256 offload_percentage = (address(this).balance *
             DRAIN_PERCENTAGE) / 100;
+
         uint256 offload_share = address(this).balance - offload_percentage;
+        require(offload_share <= address(this).balance, 'can not perform complete drain');
+
         makePayment(Owner, offload_share);
 
         emit contractOffloaded(offload_share, msg.sender);
